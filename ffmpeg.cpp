@@ -197,12 +197,10 @@ void FFmpeg::makeGif(const QString &file_in, const QString &file_out, const QTim
     QStringList filter = filter_base; filter << "paletteuse";
 
     args.clear();
-    args //<< seekFast(start)
-         << seekFast(start, true)
+    args << seekFast(start, true)
          << "-i" << file_in
          << "-i" << *palette
-         //<< seekSlow(start)
-         //<< "-t" << str_duration
+         << "-t" << str_duration
          << "-lavfi" << filter.join(",")
          << file_out;
 
@@ -228,18 +226,7 @@ void FFmpeg::makeVideo(const QString &file_in, const QString &file_out, const QT
          << seekSlow(start)
          << "-t" << str_duration
          << "-lavfi" << filter.join(",")
-         << "-avoid_negative_ts" << "1"
          << file_out;
-
-    /*args.clear();
-        args << seekFast(start)
-             << "-i" << file_in
-             << seekSlow(start);
-        if (!duration.isNull() && start.msecsTo(time_end) != QTime(0, 0, 0).msecsTo(duration))
-             args << "-t" << str_duration;
-        args << "-lavfi" << filter.join(",")
-             //<< "-avoid_negative_ts" << "1"
-             << file_out;*/
 
     run();
 
@@ -335,11 +322,19 @@ void FFmpeg::concat(const QString &file_in_1, const QString &file_in_2, const QS
    emit stateChanged("Concatenating");
 
     args.clear();
-    args << "-i" << file_in_1
+    /*args << "-i" << file_in_1
          << "-i" << file_in_2
          << "-filter_complex" << "[0:v:0] [0:a:0] [1:v:0] [1:a:0] concat=n=2:v=1:a=1 [v] [a]"
          << "-map" << "[v]"
          << "-map" << "[a]"
+         << file_out;*/
+
+    // Video only
+
+    args << "-i" << file_in_1
+         << "-i" << file_in_2
+         << "-filter_complex" << "[0:v:0] [1:v:0] concat=n=2:v=1:a=0 [v]"
+         << "-map" << "[v]"
          << file_out;
 
     run();
