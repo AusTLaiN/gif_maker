@@ -2,7 +2,7 @@
 #define MAKEMOVIEDIALOG_H
 
 #include "Widgets/fileoptions.h"
-#include "ffmpeg.h"
+#include "Base/ffmpeg.h"
 
 #include <QDialog>
 #include <QTime>

@@ -28,9 +28,7 @@ FORMS += \
     Widgets/fileoptions.ui \
     Widgets/marker.ui
 
-SOURCES += main.cpp\
-    myplayer.cpp \
-    ffmpeg.cpp \
+SOURCES += \
     Dialogs/waitdialog.cpp \
     Widgets/myvideowidget.cpp \
     Widgets/playercontrols.cpp \
@@ -38,11 +36,12 @@ SOURCES += main.cpp\
     Dialogs/makemoviedialog.cpp \
     Widgets/fileoptions.cpp \
     Widgets/marker.cpp \
-    Widgets/durationslider.cpp
+    Widgets/durationslider.cpp \
+    Base/ffmpeg.cpp \
+    Base/main.cpp \
+    Base/myplayer.cpp
 
 HEADERS  += \
-    myplayer.h \
-    ffmpeg.h \
     Dialogs/waitdialog.h \
     Widgets/myvideowidget.h \
     Widgets/playercontrols.h \
@@ -52,4 +51,9 @@ HEADERS  += \
     Dialogs/makemoviedialog.h \
     Widgets/fileoptions.h \
     Widgets/marker.h \
-    Widgets/durationslider.h
+    Widgets/durationslider.h \
+    Base/ffmpeg.h \
+    Base/myplayer.h
+
+DISTFILES += \
+    .gitignore
