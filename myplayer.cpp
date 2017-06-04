@@ -111,8 +111,23 @@ void MyPlayer::createConnections()
 {
     // Connections with specific objects
 
-    connect(slider_duration, SIGNAL(positionChanged(qint64)), this, SLOT(setPosition(qint64)));
+    // Duration slider
+
+    // Prevents recursion updates
+    // Disconnect player => slider update while slider is moving
+    connect(slider_duration, &DurationSlider::sliderPressed, [this](){
+        disconnect(player, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
+    });
+    connect(slider_duration, &DurationSlider::sliderReleased, [this](){
+        connect(player, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
+    });
     connect(player, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
+
+    connect(slider_duration, SIGNAL(positionChanged(qint64)), this, SLOT(setPosition(qint64)));
+    connect(player, SIGNAL(positionChanged(qint64)), this, SLOT(updateDurationInfo(qint64)));
+
+    // duration_slider end
+
 
     connect(player, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
 
@@ -136,8 +151,12 @@ void MyPlayer::createConnections()
 
     // Auto-repeat
     connect(player, &QMediaPlayer::stateChanged, [&, this](QMediaPlayer::State state){
-        if (state == QMediaPlayer::StoppedState && player->position() == player->duration())
+        if (state == QMediaPlayer::StoppedState && player->position() >= player->duration())
+        {
+            qDebug() << "Repeat";
+            setPosition(0);
             play();
+        }
     });
 
     // Move N msecs back/forward from current position
@@ -229,11 +248,7 @@ void MyPlayer::positionChanged(qint64 msecs)
     if (msecs > player->duration())
         msecs %= player->duration();
 
-    if (slider_duration->modifiedInternally() == false)
-        slider_duration->setPosition(msecs);
-    else
-        slider_duration->enableModification();
-    updateDurationInfo(msecs);
+    slider_duration->setPosition(msecs);
 }
 
 void MyPlayer::durationChanged(qint64 duration)

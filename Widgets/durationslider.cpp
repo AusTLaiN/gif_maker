@@ -10,8 +10,6 @@
 DurationSlider::DurationSlider(QWidget *parent) :
     QSlider(parent)
 {
-    changed_inside = false;
-
     setStyleSheet("QSlider::groove:horizontal { "
                   "border: 1px solid #999999; "
                   "height: 4px; "
@@ -49,7 +47,6 @@ void DurationSlider::setDuration(qint64 msecs)
 void DurationSlider::onSliderMoved(int pos)
 {
     // Emitting signal with current position in milliseconds
-    changed_inside = true;
     emit positionChanged(pos * step);
 }
 
@@ -66,8 +63,14 @@ void DurationSlider::mousePressEvent(QMouseEvent *event)
     {
         qint64 new_value = minimum() + ((maximum()-minimum()) * event->x()) / width();
 
+        //qDebug() << "DurationSlider::mousePressEvent: new value = " + QString::number(new_value);
+
         setValue(new_value);
         onSliderMoved(new_value);
+
+        /*qDebug() << "DurationSlider::mousePressEvent: minimum = " + QString::number(minimum());
+        qDebug() << "DurationSlider::mousePressEvent: value = " + QString::number(value());
+        qDebug() << "DurationSlider::mousePressEvent: maximum = " + QString::number(maximum());*/
     }
 
     event->accept();
@@ -76,16 +79,6 @@ void DurationSlider::mousePressEvent(QMouseEvent *event)
 
 void DurationSlider::mouseMoveEvent(QMouseEvent *event)
 {
-    /*static QPoint prev_pos;
-
-    if (qAbs(event->globalPos().x() - prev_pos.x()) < 7
-        && QToolTip::text().isEmpty() == false) {
-        //prev_pos = event->globalPos();
-        return;
-    }
-
-    prev_pos = event->globalPos();*/
-
     QPoint location;
     location.setX(event->globalX());
     location.setY(this->mapToGlobal(QPoint(-5, -50)).y());
@@ -100,9 +93,9 @@ void DurationSlider::mouseMoveEvent(QMouseEvent *event)
     time_str << t.toString(t.hour() ? "HH:mm:ss" : "mm:ss");
     time_str << QString::number(t.msec() / 100);
 
-    if (QToolTip::isVisible() == false && QToolTip::text().isEmpty() == false)
-        0;
-    else
+    // if tooltip drawing started, but not finished yet
+    // prevents artifacts and blinking while moving mouse fast
+    if (!(QToolTip::isVisible() == false && QToolTip::text().isEmpty() == false))
         QToolTip::showText(location, time_str.join("."), this, QRect(0, 0, 1, 1));
 
     event->accept();

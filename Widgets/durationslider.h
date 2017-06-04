@@ -15,11 +15,6 @@ public:
     explicit DurationSlider(QWidget *parent = nullptr);
     ~DurationSlider() = default;
 
-    // Shows whether the slider changed it's value from inside ( moved by user )
-    // or from outside ( by public slot )
-    bool modifiedInternally() const { return changed_inside; }
-    void enableModification() { changed_inside = false; }
-
 public slots:
     // These slots should be used instead of base setValue() and setRange()
     void setPosition(qint64 msecs);
