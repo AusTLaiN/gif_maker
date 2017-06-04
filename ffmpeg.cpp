@@ -20,8 +20,7 @@ static QString getExtension(const QString &filename)
 // Seek by keyframes. Should be used in combination with slow seek
 static QStringList seekFast(const QTime &start, bool forced = false)
 {
-    if (QTime(0 ,0 ,0).secsTo(start) < time_buffer && !forced
-        || QTime(0, 0, 0).msecsTo(start) == 0)
+    if (QTime(0 ,0 ,0).secsTo(start) < time_buffer && !forced)
         return QStringList();
 
     QStringList list;
@@ -76,13 +75,8 @@ FFmpeg::FFmpeg(QObject *parent) :
 FFmpeg::~FFmpeg()
 {
     // In case start() was somehow interrupted and process not finished properly
-    if (proc)
-    {
-        if (proc->pid())
-            terminate();
-        proc->waitForFinished();
-        delete proc;
-    }
+    if (proc && proc->pid())
+        terminate();
 }
 
 QStringList FFmpeg::getErrors() const
@@ -186,7 +180,7 @@ void FFmpeg::makePalette(const QString &file_in, const QTime &start, const QTime
 
 void FFmpeg::makeGif(const QString &file_in, const QString &file_out, const QTime &start, const QTime &duration)
 {
-    makePalette(input_file, start, duration);
+    makePalette(file_in, start, duration);
 
     emit stateChanged("Creating GIF");
 
@@ -399,9 +393,9 @@ void FFmpeg::currentProcessChanged(const QString &proc_name)
 
 void FFmpeg::start()
 {
-    proc = new QProcess();
+    proc = QSharedPointer<QProcess>(new QProcess);
     connect(this, SIGNAL(stateChanged(QString)), this, SLOT(currentProcessChanged(QString)));
-    connect(proc, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(handleError(QProcess::ProcessError)));
+    connect(proc.data(), SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(handleError(QProcess::ProcessError)));
 
     clearTmp();
     err_list.clear();
@@ -433,8 +427,6 @@ void FFmpeg::start()
     {
         makeVideo(input_file, file_out, time_start, duration);
     }
-
-    delete proc, proc = nullptr;
 
     emit stateChanged("Finished");
     emit finished();

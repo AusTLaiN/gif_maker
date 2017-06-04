@@ -6,6 +6,7 @@
 #include <QProcess>
 #include <QCoreApplication>
 #include <QSize>
+#include <QSharedPointer>
 
 
 class FFmpeg : public QObject
@@ -75,7 +76,8 @@ protected:
     Behavior behavior;
     GifQuality gif_quality;
 
-    QProcess* proc;
+    //QProcess* proc;
+    QSharedPointer<QProcess> proc;
     QStringList args;
 
     QStringList err_list;
