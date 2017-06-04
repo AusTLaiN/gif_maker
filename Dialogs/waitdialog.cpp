@@ -12,6 +12,7 @@ WaitDialog::WaitDialog(QDialog *parent) :
     connect(ui->button_ok, SIGNAL(clicked(bool)), this, SIGNAL(buttonOk_clicked()));
     connect(ui->button_cancel, SIGNAL(clicked(bool)), this, SIGNAL(buttonCancel_clicked()));
     connect(ui->button_open, SIGNAL(clicked(bool)), this, SIGNAL(buttonOpen_clicked()));
+    connect(ui->button_show, SIGNAL(clicked(bool)), this, SIGNAL(buttonShow_clicked()));
 }
 
 WaitDialog::~WaitDialog()
@@ -34,6 +35,11 @@ void WaitDialog::enableButtonOk(bool enabled)
     ui->button_ok->setEnabled(enabled);
 }
 
+void WaitDialog::enableBUttonShow(bool enabled)
+{
+    ui->button_show->setEnabled(enabled);
+}
+
 void WaitDialog::setStatusInfo(const QString &info)
 {
     ui->label_status->setText(info);
@@ -50,6 +56,9 @@ void WaitDialog::showResult(const QStringList &errors)
     ui->label_info->setText(info);
 
     ui->button_open->setEnabled(errors.empty());
+    ui->button_show->setEnabled(errors.empty());
     ui->button_ok->setEnabled(true);
     ui->button_cancel->setEnabled(false);
+
+    ui->button_ok->setDefault(true);
 }

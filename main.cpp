@@ -11,6 +11,9 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("GifMaker");
     QCoreApplication::setOrganizationName("Home PC");
 
+    //WaitDialog dlg;
+    //dlg.show();
+
     MyPlayer player; 
     player.show();
 

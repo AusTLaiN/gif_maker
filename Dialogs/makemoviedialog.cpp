@@ -155,12 +155,21 @@ void MakeMovieDialog::createMovie()
         if (thread->isRunning())
             ffmpeg->terminate();
     });
-    connect(&dlg, &WaitDialog::buttonOk_clicked, [&dlg](){
+    // WaitDlg finish actions
+    connect(&dlg, &WaitDialog::buttonOk_clicked, [this, &dlg](){
         dlg.close();
     });
     connect(&dlg, &WaitDialog::buttonOpen_clicked, [this, &dlg](){
         dlg.close();
         result_file = file_options->getFullFilename();
+    });
+    connect(&dlg, &WaitDialog::buttonShow_clicked, [this, &dlg](){
+        dlg.close();
+        QStringList args;
+        auto file = QDir::toNativeSeparators(file_options->getFullFilename());
+        args << "/select," << file;
+
+        QProcess::startDetached("explorer.exe", args);
     });
 
     connect(thread.data(), SIGNAL(started()), ffmpeg.data(), SLOT(start()));
