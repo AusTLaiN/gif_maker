@@ -39,6 +39,8 @@ protected slots:
 
     void createMovie();
 
+    void handlePlayerError(QMediaPlayer::Error error);
+
 protected:
     virtual void closeEvent(QCloseEvent *event) override;
 

@@ -3,19 +3,6 @@
 #include <QtWidgets>
 #include <QDebug>
 
-// Internal
-
-static QTime getTime(qint64 milliseconds)
-{
-    int secs = milliseconds / 1000;
-    int mins = secs / 60;
-    int hours = mins / 60;
-
-    return QTime(hours, mins % 60, secs % 60, milliseconds % 1000);
-}
-
-// Internal end
-
 MyPlayer::MyPlayer(QWidget *parent):
     QWidget(parent),
     player(new QMediaPlayer(this))
@@ -109,11 +96,9 @@ void MyPlayer::createLayouts()
 
 void MyPlayer::createConnections()
 {
-    // Connections with specific objects
+    // Connection with duration slider
 
-    // Duration slider
-
-    // Prevents recursion updates
+    // Prevents recursion updates ( like: slider -> player -> slider -> ... )
     // Disconnect player => slider update while slider is moving
     connect(slider_duration, &DurationSlider::sliderPressed, [this](){
         disconnect(player, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
@@ -126,8 +111,9 @@ void MyPlayer::createConnections()
     connect(slider_duration, SIGNAL(positionChanged(qint64)), this, SLOT(setPosition(qint64)));
     connect(player, SIGNAL(positionChanged(qint64)), this, SLOT(updateDurationInfo(qint64)));
 
-    // duration_slider end
+    // Misc connections
 
+    connect(player, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(handlePlayerError(QMediaPlayer::Error)));
 
     connect(player, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
 
@@ -151,7 +137,8 @@ void MyPlayer::createConnections()
 
     // Auto-repeat
     connect(player, &QMediaPlayer::stateChanged, [&, this](QMediaPlayer::State state){
-        if (state == QMediaPlayer::StoppedState && player->position() >= player->duration())
+        if (state == QMediaPlayer::StoppedState && player->position() >= player->duration()
+            && player->error() == QMediaPlayer::NoError)
         {
             qDebug() << "Repeat";
             setPosition(0);
@@ -159,9 +146,16 @@ void MyPlayer::createConnections()
         }
     });
 
+    // Connections with seek buttons
     // Move N msecs back/forward from current position
     connect(seek_buttons, &SeekButtons::seek, [this](int ms){
-        setPosition(this->player->position() + ms);
+        qint64 pos = player->position() + ms;
+        if (pos < 0)
+            pos = 0;
+        else if (pos > player->duration())
+            pos = player->duration();
+
+        setPosition(pos);
     });
 
     // Connections with markers
@@ -240,13 +234,23 @@ void MyPlayer::setFile(const QString &file)
 
 void MyPlayer::setPosition(qint64 msecs)
 {
+    if (player->error() != QMediaPlayer::NoError)
+    {
+        qDebug() << "MyPlayer::setPosition: player contains error";
+        return;
+    }
+
     player->setPosition(msecs);
 }
 
 void MyPlayer::positionChanged(qint64 msecs)
 {
     if (msecs > player->duration())
+    {
         msecs %= player->duration();
+        setPosition(msecs);
+        return;
+    }
 
     slider_duration->setPosition(msecs);
 }
@@ -256,15 +260,20 @@ void MyPlayer::durationChanged(qint64 duration)
     slider_duration->setRange(0, duration / 100);
     updateDurationInfo(0);
 
-    marker1->setDefault(QTime(0, 0 , 0));
+    auto start = QTime(0, 0 ,0);
+    auto end = QTime(0, 0, 0).addMSecs(duration);
+
+    marker1->setDefault(start);
     marker1->clear();
-    marker2->setDefault(getTime(duration));
+    marker2->setDefault(end);
     marker2->clear();
 }
 
 void MyPlayer::openFile()
 {
-    pause();
+    if (player->error() == QMediaPlayer::NoError)
+        pause();
+
     QFileDialog fileDialog(this);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setWindowTitle("Open file");
@@ -282,27 +291,24 @@ void MyPlayer::openFile()
 void MyPlayer::setMarker() const
 {
     Marker *obj = static_cast<Marker*>(sender());
-    obj->setTime(getTime(player->position()));
+    QTime time = QTime(0, 0, 0).addMSecs(player->position());
+    obj->setTime(time);
 }
 
 void MyPlayer::moveToMarker()
 {
     Marker *obj = static_cast<Marker*>(sender());
-    QTime time = obj->getTime();
-    qint64 hours = time.hour();
-    qint64 minutes = hours * 60 + time.minute();
-    qint64 seconds = minutes * 60 + time.second();
-    qint64 milliseconds = seconds * 1000 + time.msec();
+    qint64 msecs = QTime(0, 0, 0).msecsTo(obj->getTime());
 
-    setPosition(milliseconds);
+    setPosition(msecs);
 }
 
 void MyPlayer::updateDurationInfo(qint64 current_pos)
 {
     QString info, format;
 
-    QTime total = getTime(player->duration());
-    QTime current = getTime(current_pos);
+    QTime total = QTime(0, 0 ,0).addMSecs(player->duration());
+    QTime current = QTime(0, 0, 0).addMSecs(current_pos);
 
     format = total.hour() > 0 ? "HH:mm:ss.zzz" : "mm:ss.zzz";
     info = current.toString(format) + " / " + total.toString(format);
@@ -314,6 +320,8 @@ void MyPlayer::createMovie()
 {
     if (current_file.isEmpty())
         return;
+    if (player->error() != QMediaPlayer::NoError)
+        return;
 
     if (marker1->getTime() >= marker2->getTime())
     {
@@ -323,9 +331,23 @@ void MyPlayer::createMovie()
 
     pause();
     MakeMovieDialog dlg(current_file, nullptr);
-    dlg.setTime(marker1->getTime(), marker2->getTime(), getTime(player->duration()));
+    QTime start = marker1->getTime();
+    QTime end = marker2->getTime();
+    QTime total = QTime(0, 0, 0).addMSecs(player->duration());
+
+    dlg.setTime(start, end, total);
     dlg.exec();
 
     if (!dlg.getResult().isEmpty())
         setFile(dlg.getResult());
+}
+
+void MyPlayer::handlePlayerError(QMediaPlayer::Error error)
+{
+    player->stop();
+    QStringList err_msg;
+    err_msg << "MediaPlayer error"
+            << "Error code : " + QString::number(error)
+            << "Error msg  : " + player->errorString();
+    QMessageBox(QMessageBox::Critical, "Error", err_msg.join("\n")).exec();
 }
