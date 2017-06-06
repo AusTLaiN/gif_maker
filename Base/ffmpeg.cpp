@@ -9,13 +9,19 @@ Q_GLOBAL_STATIC_WITH_ARGS(QString, ffmpeg, (QCoreApplication::applicationDirPath
 Q_GLOBAL_STATIC_WITH_ARGS(QString, tmpdir, (QCoreApplication::applicationDirPath() + "/tmp"))
 Q_GLOBAL_STATIC_WITH_ARGS(QString, palette, (QCoreApplication::applicationDirPath() + "/tmp/palette.png"))
 
+//! Move to class
 static const char time_format[] = "HH:mm:ss.zzz";
+//! Remove
 static const int time_buffer = 10; // for fast seek
 
 static QString getExtension(const QString &filename)
 {
     return filename.split(".").last();
 }
+
+//! Add enum to class: SeekBehavior { Slow, Fast, Combined };
+// Replace this 2 function with 1 with next signature:
+// QStringList seek(const QTime &start, SeekBehavior behavior, int time_buffer = -1)
 
 // Seek by keyframes. Should be used in combination with slow seek
 static QStringList seekFast(const QTime &start, bool forced = false)
@@ -74,6 +80,7 @@ FFmpeg::FFmpeg(QObject *parent) :
 
 FFmpeg::~FFmpeg()
 {
+    //! Move this logic to smart-pointer deleter
     // In case start() was somehow interrupted and process not finished properly
     if (proc && proc->pid())
         terminate();
@@ -353,6 +360,7 @@ void FFmpeg::run()
 
 void FFmpeg::handleError(QProcess::ProcessError error)
 {
+    //! Replcae this using qt meta-object system
     QString err_msg;
     switch(error) {
     case QProcess::FailedToStart:
@@ -393,6 +401,7 @@ void FFmpeg::currentProcessChanged(const QString &proc_name)
 
 void FFmpeg::start()
 {
+    //! Add Deleter-function, which will terminate active process
     proc = QSharedPointer<QProcess>(new QProcess);
     connect(this, SIGNAL(stateChanged(QString)), this, SLOT(currentProcessChanged(QString)));
     connect(proc.data(), SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(handleError(QProcess::ProcessError)));
@@ -417,6 +426,7 @@ void FFmpeg::start()
 
     if (getExtension(output_file) == "gif")
     {
+        //! Swap branches
         // Simple copying for low-quality gif
         if (gif_quality == High)
             makeGif(input_file, file_out, time_start, duration);
