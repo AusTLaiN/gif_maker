@@ -29,9 +29,6 @@ protected slots:
 protected:
     virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
-protected:
-    bool changed_inside;
-
 };
 
 #endif // DURATIONSLIDER_H
