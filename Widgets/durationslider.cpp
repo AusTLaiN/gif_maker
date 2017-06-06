@@ -33,10 +33,7 @@ DurationSlider::DurationSlider(QWidget *parent) :
 void DurationSlider::setPosition(qint64 msecs)
 {
     if (value() != msecs / step)
-    {
         setValue(msecs / step);
-        changed_inside = false;
-    }
 }
 
 void DurationSlider::setDuration(qint64 msecs)
@@ -52,12 +49,12 @@ void DurationSlider::onSliderMoved(int pos)
 
 void DurationSlider::mousePressEvent(QMouseEvent *event)
 {
-    // If mouse is hovering over slider handle, this should be skipped
-    // and drag-n-drop action performed instead ( default behavior )
     QStyleOptionSlider opt;
     initStyleOption(&opt);
     QRect sr = style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderHandle, this);
 
+    // If mouse is hovering over slider handle, this should be skipped
+    // and drag-n-drop action performed instead ( default behavior )
     if (event->button() == Qt::LeftButton &&
         sr.contains(event->pos()) == false)
     {
