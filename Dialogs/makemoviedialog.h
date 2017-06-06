@@ -40,8 +40,13 @@ protected slots:
 
 protected:
     FileOptions *file_options;
-    QTime t_start, t_end, t_total;
-    QString input_filename, result_file;
+    
+    QTime t_start;
+    QTime t_end;
+    QTime t_total;
+    
+    QString input_filename;
+    QString result_file;
 
 private:
     Ui::MakeMovieDialog *ui;
