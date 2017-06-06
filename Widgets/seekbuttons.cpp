@@ -4,13 +4,15 @@
 #include <QPushButton>
 #include <QStyle>
 
+// Re-write this
+
 SeekButtons::SeekButtons(QWidget *parent)
     : QWidget(parent)
 {
     const int count = 4;
     QHBoxLayout *layout = new QHBoxLayout;
-    QHBoxLayout *l1 = new QHBoxLayout;
-    QHBoxLayout *l2 = new QHBoxLayout;
+    QHBoxLayout *l1 = new QHBoxLayout; // Layout for "back" buttons
+    QHBoxLayout *l2 = new QHBoxLayout; // Layout for "forward" buttons
     QPushButton* buttons[count][2];
 
     for (int i = 0; i < count; ++i)
