@@ -23,12 +23,11 @@ protected:
     virtual void keyPressEvent(QKeyEvent *event) override;
     virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
     virtual void mousePressEvent(QMouseEvent *event) override;
-    virtual void mouseReleaseEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
 
 protected:
     QElapsedTimer timer;
-    QTimer *timer_hide_mouse;
+    QTimer timer_hide_mouse;
 };
 
 #endif // MYVIDEOWIDGET_H

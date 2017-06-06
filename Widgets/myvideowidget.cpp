@@ -16,6 +16,7 @@ MyVideoWidget::MyVideoWidget(QWidget *parent) :
     setAttribute(Qt::WA_OpaquePaintEvent);
     setMouseTracking(true);
 
+    connect(&timer_hide_mouse, SIGNAL(timeout()), this, SLOT(hideMouse()));
     connect(this, &fullScreenChanged, [this](bool fullScreen){
         if (fullScreen)
         {
@@ -23,7 +24,6 @@ MyVideoWidget::MyVideoWidget(QWidget *parent) :
         }
         else
         {
-            delete timer_hide_mouse, timer_hide_mouse = nullptr;
             setCursor(Qt::ArrowCursor);
         }
     });
@@ -31,26 +31,15 @@ MyVideoWidget::MyVideoWidget(QWidget *parent) :
 
 void MyVideoWidget::hideMouse()
 {
-    if (timer_hide_mouse)
-    {
-        delete timer_hide_mouse, timer_hide_mouse = nullptr;
-    }
-
+    timer_hide_mouse.stop();
     setCursor(Qt::BlankCursor);
 }
 
 void MyVideoWidget::beginHiding()
 {
-    if (!timer_hide_mouse)
-    {
-        timer_hide_mouse = new QTimer(this);
-        connect(timer_hide_mouse, SIGNAL(timeout()), this, SLOT(hideMouse()));
-    }
-    else
-        timer_hide_mouse->stop();
-
-    timer_hide_mouse->setInterval(2000);
-    timer_hide_mouse->start();
+    timer_hide_mouse.stop();
+    timer_hide_mouse.setInterval(2000);
+    timer_hide_mouse.start();
 
 }
 
@@ -87,11 +76,6 @@ void MyVideoWidget::mousePressEvent(QMouseEvent *event)
     emit mousePressed();
     event->accept();
     timer.start();
-}
-
-void MyVideoWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    event->accept();
 }
 
 void MyVideoWidget::mouseMoveEvent(QMouseEvent *event)
