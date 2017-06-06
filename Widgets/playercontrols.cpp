@@ -8,9 +8,6 @@ PlayerControls::PlayerControls(QWidget *parent) :
     button_mute(new QPushButton),
     slider_volume(new QSlider(Qt::Horizontal))
 {
-    slider_volume->setRange(0, 100);
-    slider_volume->setMaximumWidth(100);
-
     connect(button_play, SIGNAL(clicked(bool)), this, SLOT(buttonPlay_clicked()));
     connect(button_mute, SIGNAL(clicked(bool)), this, SLOT(buttonMute_clicked()));
     connect(slider_volume, SIGNAL(valueChanged(int)), this, SIGNAL(changeVolume(int)));
@@ -25,16 +22,20 @@ PlayerControls::PlayerControls(QWidget *parent) :
 
     setLayout(layout);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        
+    // Tooltips
 
     button_mute->setToolTip("Mute/Unmute");
     button_play->setToolTip("Play/Pause");
-    slider_volume->setToolTip("Volume level");
+    slider_volume->setToolTip("Volume");
 
     // Default values
 
     playerMuted = false;
     button_mute->setIcon(style()->standardIcon(QStyle::SP_MediaVolume));
     setMediaPlayerState(QMediaPlayer::PausedState);
+    slider_volume->setRange(0, 100);
+    slider_volume->setMaximumWidth(100);
 }
 
 QMediaPlayer::State PlayerControls::getMediaPlayerState() const
