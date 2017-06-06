@@ -2,68 +2,67 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QMetaEnum>
 
-// Internal variables and functions
+// Internal
 
 Q_GLOBAL_STATIC_WITH_ARGS(QString, ffmpeg, (QCoreApplication::applicationDirPath() + "/ffmpeg.exe"))
 Q_GLOBAL_STATIC_WITH_ARGS(QString, tmpdir, (QCoreApplication::applicationDirPath() + "/tmp"))
 Q_GLOBAL_STATIC_WITH_ARGS(QString, palette, (QCoreApplication::applicationDirPath() + "/tmp/palette.png"))
 
-//! Move to class
-static const char time_format[] = "HH:mm:ss.zzz";
-//! Remove
-static const int time_buffer = 10; // for fast seek
+const char* FFmpeg::time_format = "HH:mm:ss.zzz";
 
 static QString getExtension(const QString &filename)
 {
     return filename.split(".").last();
 }
 
-//! Add enum to class: SeekBehavior { Slow, Fast, Combined };
-// Replace this 2 function with 1 with next signature:
-// QStringList seek(const QTime &start, SeekBehavior behavior, int time_buffer = -1)
-
-// Seek by keyframes. Should be used in combination with slow seek
-static QStringList seekFast(const QTime &start, bool forced = false)
-{
-    if (QTime(0 ,0 ,0).secsTo(start) < time_buffer && !forced)
-        return QStringList();
-
-    QStringList list;
-    QString str_fast;
-
-    if (forced)
-        str_fast = start.toString(time_format);
-    else
-        str_fast = start.addSecs(-time_buffer).toString(time_format);
-
-    list << "-ss" << str_fast;
-
-    return list;
-}
-
-// If forced = false, performs slow seek combined with fast one
-// Otherwise complete slow seek will be done
-static QStringList seekSlow(const QTime &start, bool forced = false)
-{
-    if (QTime(0, 0, 0).msecsTo(start) == 0)
-        return QStringList();
-
-    QStringList list;
-
-    if (QTime(0 ,0 ,0).secsTo(start) < time_buffer || forced)
-    {
-        list << "-ss" << start.toString(time_format);
-    }
-    else if (!forced)
-    {
-        list << "-ss" << QTime(0, 0, time_buffer).toString(time_format);
-    }
-
-    return list;
-}
-
 // Internal end
+
+// class-static functions
+
+QStringList FFmpeg::seek(const QTime &start)
+{
+    QStringList list;
+
+    if (QTime(0, 0, 0).msecsTo(start) != 0)
+        list << "-ss" << start.toString(time_format);
+
+    return list;
+}
+
+QStringList FFmpeg::seek(const QTime &start, FFmpeg::SeekBehavior behavior, int time_buffer)
+{
+    if (behavior == Fast || behavior == Slow)
+        return seek(start);
+
+
+    QStringList list;
+
+    if (QTime(0, 0, 0).msecsTo(start) == 0)
+        return list;
+
+    if (behavior == CombinedFast)
+    {
+        list << "-ss" << start.addSecs(-time_buffer).toString(time_format);
+    }
+    else if (behavior == CombinedSlow)
+    {
+        if (QTime(0, 0, 0).msecsTo(start) > time_buffer)
+            list << "-ss" << QTime(0, 0, 0).addSecs(time_buffer).toString(time_format);
+        else
+            list << "-ss" << start.toString(time_format);
+    }
+
+    return list;
+}
+
+QStringList FFmpeg::seek(qint64 msecs, FFmpeg::SeekBehavior behavior, int time_buffer)
+{
+    return seek(QTime(0, 0, 0).addMSecs(msecs), behavior, time_buffer);
+}
+
+// static end
 
 
 FFmpeg::FFmpeg(QObject *parent) :
@@ -80,7 +79,6 @@ FFmpeg::FFmpeg(QObject *parent) :
 
 FFmpeg::~FFmpeg()
 {
-    //! Move this logic to smart-pointer deleter
     // In case start() was somehow interrupted and process not finished properly
     if (proc && proc->pid())
         terminate();
@@ -176,7 +174,7 @@ void FFmpeg::makePalette(const QString &file_in, const QTime &start, const QTime
     QStringList filter = filter_base; filter << "palettegen";
 
     args.clear();
-    args << seekFast(start, true)
+    args << seek(start, Slow)
          << "-t" << str_duration
          << "-i" << file_in
          << "-vf" << filter.join(",")
@@ -198,7 +196,7 @@ void FFmpeg::makeGif(const QString &file_in, const QString &file_out, const QTim
     QStringList filter = filter_base; filter << "paletteuse";
 
     args.clear();
-    args << seekFast(start, true)
+    args << seek(start, Slow)
          << "-i" << file_in
          << "-i" << *palette
          << "-t" << str_duration
@@ -222,9 +220,9 @@ void FFmpeg::makeVideo(const QString &file_in, const QString &file_out, const QT
     QStringList filter = filter_base;
 
     args.clear();
-    args << seekFast(start)
+    args << seek(start, CombinedFast, 30)
          << "-i" << file_in
-         << seekSlow(start)
+         << seek(start, CombinedSlow, 30)
          << "-t" << str_duration
          << "-lavfi" << filter.join(",")
          << file_out;
@@ -247,9 +245,9 @@ void FFmpeg::copy(const QString &file_in, const QString &file_out, const QTime &
     QString str_duration = duration.toString(time_format);
 
     args.clear();
-    args << seekFast(start)
+    args << seek(start, CombinedFast, 30)
          << "-i" << file_in
-         << seekSlow(start)
+         << seek(start, CombinedSlow, 30)
          << "-t" << str_duration
          << "-c" << "copy"
          << file_out;
@@ -360,28 +358,8 @@ void FFmpeg::run()
 
 void FFmpeg::handleError(QProcess::ProcessError error)
 {
-    //! Replcae this using qt meta-object system
-    QString err_msg;
-    switch(error) {
-    case QProcess::FailedToStart:
-        err_msg = "Failed to start";
-        break;
-    case QProcess::Crashed:
-        err_msg = "Crashed";
-        break;
-    case QProcess::Timedout:
-        err_msg = "Timedout";
-        break;
-    case QProcess::WriteError:
-        err_msg = "Write Error";
-        break;
-    case QProcess::ReadError:
-        err_msg = "Read Error";
-        break;
-    case QProcess::UnknownError:
-        err_msg = "Unknown Error";
-        break;
-    }
+    QMetaEnum metaEnum = QMetaEnum::fromType<QProcess::ProcessError>();
+    QString err_msg = metaEnum.valueToKey(error);
 
     handleError(err_msg);
 }
@@ -401,8 +379,7 @@ void FFmpeg::currentProcessChanged(const QString &proc_name)
 
 void FFmpeg::start()
 {
-    //! Add Deleter-function, which will terminate active process
-    proc = QSharedPointer<QProcess>(new QProcess);
+    proc.reset(new QProcess);
     connect(this, SIGNAL(stateChanged(QString)), this, SLOT(currentProcessChanged(QString)));
     connect(proc.data(), SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(handleError(QProcess::ProcessError)));
 
@@ -420,18 +397,16 @@ void FFmpeg::start()
     QTime duration = QTime(0, 0, 0).addMSecs(time_start.msecsTo(time_end));
     qDebug() << duration;
     // tmp file is used for further transformations
-    QString file_out = behavior == Normal ?
-                                   output_file :
-                                   *tmpdir + "/tmp_copy." + getExtension(output_file);
+    QString file_out = behavior == Normal ? output_file
+                                          : *tmpdir + "/tmp_copy." + getExtension(output_file);
 
     if (getExtension(output_file) == "gif")
     {
-        //! Swap branches
         // Simple copying for low-quality gif
-        if (gif_quality == High)
-            makeGif(input_file, file_out, time_start, duration);
-        else
+        if (gif_quality == Low)
             copy(input_file, file_out, time_start, duration);
+        else
+            makeGif(input_file, file_out, time_start, duration);
     }
     else
     {

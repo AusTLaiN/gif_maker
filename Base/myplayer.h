@@ -1,7 +1,7 @@
 #ifndef MYPLAYER_H
 #define MYPLAYER_H
 
-#include "Dialogs/dialogs.h"
+#include "Dialogs/makemoviedialog.h"
 #include "Widgets/widgets.h"
 
 #include <QVideoWidget>
@@ -10,6 +10,7 @@
 class MyPlayer : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit MyPlayer(QWidget *parent = 0);
     ~MyPlayer() = default;
@@ -30,19 +31,19 @@ protected slots:
     void setMarker() const;
     void moveToMarker();
 
-    void loadSettings();
-    void saveSettings() const;
-
-    void createWidgets();
-    void createLayouts();
-    void createConnections();
-
     void createMovie();
 
     void handlePlayerError(QMediaPlayer::Error error);
 
 protected:
     virtual void closeEvent(QCloseEvent *event) override;
+
+    void loadSettings();
+    void saveSettings() const;
+
+    void createWidgets();
+    void createLayouts();
+    void createConnections();
 
 protected:
     MyVideoWidget *video_widget;

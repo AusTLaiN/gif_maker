@@ -47,7 +47,6 @@ HEADERS  += \
     Widgets/playercontrols.h \
     Widgets/seekbuttons.h \
     Widgets/widgets.h \
-    Dialogs/dialogs.h \
     Dialogs/makemoviedialog.h \
     Widgets/fileoptions.h \
     Widgets/marker.h \

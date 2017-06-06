@@ -15,7 +15,13 @@ class FFmpeg : public QObject
 
 public:
     enum Behavior { Normal, Reverse, Mirror, Loop, Keyframes };
+    Q_ENUM(Behavior)
     enum GifQuality { High, Low };
+    Q_ENUM(GifQuality)
+    enum SeekBehavior { Fast, Slow, CombinedFast, CombinedSlow };
+    Q_ENUM(SeekBehavior)
+
+    static const char *time_format;
     static const int sizeOriginal = -2;
     static const int sizeScale = -1;
     static const int fpsOriginal = -1;
@@ -50,6 +56,11 @@ protected slots:
     void currentProcessChanged(const QString &proc_name);
 
 protected:
+    static QStringList seek(const QTime &start);
+    static QStringList seek(const QTime &start, SeekBehavior behavior, int time_buffer = -1);
+    static QStringList seek(qint64 msecs, SeekBehavior behavior, int time_buffer = -1);
+
+protected:
     void insertKeyframes(const QString &file_in, const QString &file_out, const QString &start, const QString &frequency);
     void insertKeyframes(const QString &file_in, const QString &file_out, const QTime &start, const QTime &end);
     void reverse(const QString &file_in, const QString &file_out);
@@ -76,8 +87,8 @@ protected:
     Behavior behavior;
     GifQuality gif_quality;
 
-    //QProcess* proc;
-    QSharedPointer<QProcess> proc;
+    //QSharedPointer<QProcess> proc;
+    QScopedPointer<QProcess> proc;
     QStringList args;
 
     QStringList err_list;
