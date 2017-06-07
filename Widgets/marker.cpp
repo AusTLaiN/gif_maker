@@ -8,7 +8,7 @@ Marker::Marker(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->button_setMarker->setToolTip("Create marker at current time");
+    ui->button_setMarker->setToolTip("Create marker at current position");
     ui->button_clear->setToolTip("Clear this marker");
     ui->button_move->setToolTip("Move to this marker's time");
 
@@ -45,7 +45,6 @@ QString Marker::getDescription() const
 void Marker::setTime(const QTime &time)
 {
     this->time = time;
-    //QString format = time.hour() > 0 ? "HH:mm:ss.zzz" : "mm:ss.zzz";
     ui->label_time->setText(time.toString("HH:mm:ss.zzz"));
     activate(true);
 }

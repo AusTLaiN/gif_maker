@@ -161,6 +161,7 @@ void FileOptions::clickedBrowse()
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setFileMode(QFileDialog::Directory);
     dialog.setOptions(QFileDialog::ShowDirsOnly);
+    dialog.setDirectory(getDirectory());
     dialog.setWindowTitle("Select folder");
 
     if (dialog.exec() == QDialog::Accepted)

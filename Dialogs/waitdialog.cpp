@@ -9,10 +9,16 @@ WaitDialog::WaitDialog(QDialog *parent) :
     // hide close and "?" buttons
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
 
-    connect(ui->button_ok, SIGNAL(clicked(bool)), this, SIGNAL(buttonOk_clicked()));
-    connect(ui->button_cancel, SIGNAL(clicked(bool)), this, SIGNAL(buttonCancel_clicked()));
-    connect(ui->button_open, SIGNAL(clicked(bool)), this, SIGNAL(buttonOpen_clicked()));
-    connect(ui->button_show, SIGNAL(clicked(bool)), this, SIGNAL(buttonShow_clicked()));
+    connect(ui->button_cancel, SIGNAL(clicked(bool)), this, SIGNAL(buttonCancel_clicked()));  
+    connect(ui->button_ok, &QPushButton::clicked, [this](){
+        done(Ok);
+    });
+    connect(ui->button_open, &QPushButton::clicked, [this](){
+        done(Open);
+    });
+    connect(ui->button_show, &QPushButton::clicked, [this](){
+        done(Show);
+    });
 }
 
 WaitDialog::~WaitDialog()

@@ -12,6 +12,14 @@ class WaitDialog : public QDialog
     Q_OBJECT
 
 public:
+    enum ReturnAction {
+        Ok,
+        Open,
+        Show
+    };
+    Q_ENUM(ReturnAction)
+
+public:
     explicit WaitDialog(QDialog *parent = 0);
     ~WaitDialog();
 
@@ -24,10 +32,7 @@ public slots:
     void setStatusInfo(const QString &info);
 
 signals:
-    void buttonOpen_clicked();
-    void buttonOk_clicked();
     void buttonCancel_clicked();
-    void buttonShow_clicked();
 
 private:
     Ui::WaitDialog *ui;
