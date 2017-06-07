@@ -23,10 +23,10 @@ MakeMovieDialog::MakeMovieDialog(QWidget *parent) :
     ui->verticalLayout_5->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
     ui->comboBox_height->setToolTip("Output movie height.\n"
-                                    "Scale works only if another dimension is set.\n"
+                                    "Scale works only if another dimension set.\n"
                                     "Scaling both dimensions will give the original size");
     ui->comboBox_width->setToolTip("Output movie width.\n"
-                                    "Scale works only if another dimension is set.\n"
+                                    "Scale works only if another dimension set.\n"
                                     "Scaling both dimensions will give the original size");
     ui->comboBox_fps->setToolTip("Output movie fps");
 
