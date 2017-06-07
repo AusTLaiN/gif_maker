@@ -71,7 +71,7 @@ FFmpeg::FFmpeg(QObject *parent) :
 {
     frame_size = QSize(sizeScale, sizeScale);
     fps = fpsOriginal;
-    behavior = Normal;
+    behavior = None;
     gif_quality = High;
 
     timeout = 1000 * 60 * 10;
@@ -122,7 +122,7 @@ void FFmpeg::setFrameSize(const QSize &size)
     setFrameSize(size.width(), size.height());
 }
 
-void FFmpeg::setBehavior(FFmpeg::Behavior behavior)
+void FFmpeg::setBehavior(FFmpeg::Transform behavior)
 {
     this->behavior = behavior;
 }
@@ -130,7 +130,7 @@ void FFmpeg::setBehavior(FFmpeg::Behavior behavior)
 void FFmpeg::transform(const QString &file_in, const QString &file_out)
 {
     switch (behavior) {
-    case Behavior::Loop:
+    case Transform::Loop:
     {
         QString tmp_file_rev = *tmpdir + "/tmp_copy_rev." + getExtension(file_in);
 
@@ -139,7 +139,7 @@ void FFmpeg::transform(const QString &file_in, const QString &file_out)
 
         break;
     }
-    case Behavior::Keyframes:
+    case Transform::InsertKeyframes:
     {
         /*if (getExtension(file_out) == "gif")
             handleError("Keyframes cannot apply to GIF format.");
@@ -149,15 +149,25 @@ void FFmpeg::transform(const QString &file_in, const QString &file_out)
 
         break;
     }
-    case Behavior::Reverse:
+    case Transform::Mirror:
+    {
+        mirror(file_in, file_out);
+        break;
+    }
+    case Transform::Reverse:
     {
         reverse(file_in, file_out);
+        break;
+    }
+    case Transform::None:
+    {
+        qDebug() << "Normal behavior causes no transformations";
         break;
     }
 
     default:
     {
-        qDebug() << "Normal behavior causes no transform";
+        qDebug() << "Unknown transformation";
         break;
     }
     }
@@ -205,8 +215,8 @@ void FFmpeg::makeGif(const QString &file_in, const QString &file_out, const QTim
 
     run();
 
-    if (behavior != Normal)
-        transform(file_out, output_file);
+    /*if (behavior != None)
+        transform(file_out, output_file);*/
 }
 
 void FFmpeg::makeVideo(const QString &file_in, const QString &file_out, const QTime &start, const QTime &duration)
@@ -229,8 +239,8 @@ void FFmpeg::makeVideo(const QString &file_in, const QString &file_out, const QT
 
     run();
 
-    if (behavior != Normal)
-        transform(file_out, output_file);
+    /*if (behavior != None)
+        transform(file_out, output_file);*/
 }
 
 void FFmpeg::copy(const QString &file_in, const QString &file_out, const QTime &start, const QTime &duration)
@@ -261,6 +271,18 @@ void FFmpeg::copy(const QString &file_in, const QString &file_out)
 
     args.clear();
     args << "-i" << file_in
+         << file_out;
+
+    run();
+}
+
+void FFmpeg::mirror(const QString &file_in, const QString &file_out)
+{
+    emit stateChanged("Mirroring");
+
+    args.clear();
+    args << "-i" << file_in
+         << "-vf" << "transpose=0, transpose=1"
          << file_out;
 
     run();
@@ -367,7 +389,6 @@ void FFmpeg::handleError(QProcess::ProcessError error)
 void FFmpeg::handleError(const QString &error)
 {
     err_list << current_process + " : " + error;
-
     qDebug() << err_list;
 }
 
@@ -395,16 +416,19 @@ void FFmpeg::start()
         handleError("ffmpeg not found");
 
     QTime duration = QTime(0, 0, 0).addMSecs(time_start.msecsTo(time_end));
-    qDebug() << duration;
     // tmp file is used for further transformations
-    QString file_out = behavior == Normal ? output_file
+    QString file_out = behavior == None ? output_file
                                           : *tmpdir + "/tmp_copy." + getExtension(output_file);
 
     if (getExtension(output_file) == "gif")
     {
         // Simple copying for low-quality gif
-        if (gif_quality == Low)
+        /*if (gif_quality == Low || getExtension(input_file) == "gif")
             copy(input_file, file_out, time_start, duration);
+        else
+            makeGif(input_file, file_out, time_start, duration);*/
+        if (gif_quality == Low)
+            handleError("Low quality GIFs are not supported");
         else
             makeGif(input_file, file_out, time_start, duration);
     }
@@ -412,6 +436,9 @@ void FFmpeg::start()
     {
         makeVideo(input_file, file_out, time_start, duration);
     }
+
+    if (behavior != None)
+        transform(file_out, output_file);
 
     emit stateChanged("Finished");
     emit finished();

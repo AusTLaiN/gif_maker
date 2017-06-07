@@ -14,11 +14,27 @@ class FFmpeg : public QObject
     Q_OBJECT
 
 public:
-    enum Behavior { Normal, Reverse, Mirror, Loop, Keyframes };
-    Q_ENUM(Behavior)
-    enum GifQuality { High, Low };
+    enum Transform {
+        None,
+        Reverse,
+        Mirror,
+        Loop,
+        InsertKeyframes
+    };
+    Q_ENUM(Transform)
+
+    enum GifQuality {
+        High,
+        Low
+    };
     Q_ENUM(GifQuality)
-    enum SeekBehavior { Fast, Slow, CombinedFast, CombinedSlow };
+
+    enum SeekBehavior {
+        Fast,
+        Slow,
+        CombinedFast,
+        CombinedSlow
+    };
     Q_ENUM(SeekBehavior)
 
     static const char *time_format;
@@ -38,7 +54,7 @@ public:
     void setFps(int fps);
     void setFrameSize(int width, int height);
     void setFrameSize(const QSize &size);
-    void setBehavior(Behavior behavior);
+    void setBehavior(Transform behavior);
 
 public slots:
     void start();
@@ -67,6 +83,7 @@ protected:
     void concat(const QString &file_in_1, const QString &file_in_2, const QString &file_out);
     void copy(const QString &file_in, const QString &file_out, const QTime &start, const QTime &duration);
     void copy(const QString &file_in, const QString &file_out);
+    void mirror(const QString &file_in, const QString &file_out);
     void transform(const QString &file_in, const QString &file_out);
 
     void makeGif(const QString &file_in, const QString &file_out, const QTime &start, const QTime &duration);
@@ -84,7 +101,7 @@ protected:
     int fps;
     int timeout;
     QSize frame_size;
-    Behavior behavior;
+    Transform behavior;
     GifQuality gif_quality;
 
     //QSharedPointer<QProcess> proc;
