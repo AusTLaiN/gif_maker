@@ -7,17 +7,18 @@
 #include <QFile>
 #include <QDir>
 #include <QDebug>
+#include <QMetaEnum>
 
 MakeMovieDialog::MakeMovieDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::MakeMovieDialog)
+    ui(new Ui::MakeMovieDialog),
+    file_options(new FileOptions)
 {
     ui->setupUi(this);
     // Hide "?" button
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     setWindowTitle("Movie options");
 
-    file_options = new FileOptions;
 
     ui->verticalLayout_5->addWidget(file_options);
     ui->verticalLayout_5->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
@@ -28,14 +29,28 @@ MakeMovieDialog::MakeMovieDialog(QWidget *parent) :
     ui->comboBox_width->setToolTip("Output movie width.\n"
                                     "Scale works only if another dimension set.\n"
                                     "Scaling both dimensions will give the original size");
-    ui->comboBox_fps->setToolTip("Output movie fps");
+    ui->comboBox_fps->setToolTip("Output movie fps.\n"
+                                 "Fps cannot exceed original value");
 
 
     connect(ui->button_create, SIGNAL(clicked(bool)), this, SLOT(createMovie()));
     connect(ui->comboBox_transform, SIGNAL(currentTextChanged(QString)), this, SLOT(comboBoxTransform_textChanged(QString)));
 
+    // Set available transformations
+
+    QMetaEnum metaEnum = QMetaEnum::fromType<FFmpeg::Transform>();
+    QStringList availableTransforms;
+
+    for (int i = 0; i < metaEnum.keyCount(); ++i)
+        availableTransforms.append(metaEnum.key(i));
+
+    ui->comboBox_transform->clear();
+    ui->comboBox_transform->addItems(availableTransforms);
+
+    //
+
     resize(640, 150);
-    ui->comboBox_fps->setCurrentText("20");
+    ui->comboBox_fps->setCurrentText("20");  
     comboBoxTransform_updateTooltip();
 }
 
@@ -52,7 +67,8 @@ MakeMovieDialog::MakeMovieDialog(const QString &input_file_fullname, QWidget *pa
     QString extension = filename.mid(i, filename.length() - i);
 
     file_options->setFileName(name_only);
-    file_options->setExtension(extension);
+    //file_options->setExtension(extension);
+    file_options->setExtension(".gif");
 }
 
 MakeMovieDialog::~MakeMovieDialog()
@@ -60,9 +76,12 @@ MakeMovieDialog::~MakeMovieDialog()
     delete ui;
 }
 
-FFmpeg::Behavior MakeMovieDialog::getTransformation() const
+FFmpeg::Transform MakeMovieDialog::getTransformation() const
 {
-    return static_cast<FFmpeg::Behavior>(ui->comboBox_transform->currentIndex());
+    QMetaEnum metaEnum = QMetaEnum::fromType<FFmpeg::Transform>();
+    int index = ui->comboBox_transform->currentIndex();
+
+    return static_cast<FFmpeg::Transform>(metaEnum.value(index));
 }
 
 QSize MakeMovieDialog::getSize() const
@@ -149,27 +168,10 @@ void MakeMovieDialog::createMovie()
 
     WaitDialog dlg;
 
-    connect(&dlg, SIGNAL(finished(int)), this, SLOT(close()));
     // Lambda is called from current thread, terminating ffmpeg located in another thread
     connect(&dlg, &WaitDialog::buttonCancel_clicked, [&thread, &ffmpeg, &dlg](){
         if (thread->isRunning())
             ffmpeg->terminate();
-    });
-    // WaitDlg finish actions
-    connect(&dlg, &WaitDialog::buttonOk_clicked, [this, &dlg](){
-        dlg.close();
-    });
-    connect(&dlg, &WaitDialog::buttonOpen_clicked, [this, &dlg](){
-        dlg.close();
-        result_file = file_options->getFullFilename();
-    });
-    connect(&dlg, &WaitDialog::buttonShow_clicked, [this, &dlg](){
-        dlg.close();
-        QStringList args;
-        auto file = QDir::toNativeSeparators(file_options->getFullFilename());
-        args << "/select," << file;
-
-        QProcess::startDetached("explorer.exe", args);
     });
 
     connect(thread.data(), SIGNAL(started()), ffmpeg.data(), SLOT(start()));
@@ -179,8 +181,26 @@ void MakeMovieDialog::createMovie()
 
     ffmpeg->moveToThread(thread.data());
     thread->start();
+    int res = dlg.exec();
 
-    dlg.exec();
+    switch(res) {
+    case WaitDialog::Open:
+        result_file = file_options->getFullFilename();
+        break;
+    case WaitDialog::Show:
+    {
+        QStringList args;
+        auto file = QDir::toNativeSeparators(file_options->getFullFilename());
+        args << "/select," << file;
+
+        QProcess::startDetached("explorer.exe", args);
+        break;
+    }
+    default:
+        qDebug("MakeMovieDialog::createMovie: Unknown WaitDialogResult %i", res);
+    }
+
+    done(res);
 }
 
 void MakeMovieDialog::comboBoxTransform_textChanged(const QString &text)
@@ -206,23 +226,34 @@ void MakeMovieDialog::comboBoxTransform_textChanged(const QString &text)
 void MakeMovieDialog::comboBoxTransform_updateTooltip()
 {
     QComboBox *cbox = ui->comboBox_transform;
-    QString text = cbox->currentText();
+    QMetaEnum metaEnum = QMetaEnum::fromType<FFmpeg::Transform>();
 
-    if (text == "None")
+    QString text = cbox->currentText();    
+    std::string key = text.toStdString();
+    FFmpeg::Transform value = static_cast<FFmpeg::Transform>(metaEnum.keyToValue(key.c_str()));
+
+    switch(value) {
+    case FFmpeg::None:
         cbox->setToolTip("Normal behavior without any additional effects");
-    else if (text == "Reverse")
+        break;
+    case FFmpeg::Reverse:
         cbox->setToolTip("Reverse the movie");
-    else if (text == "Loop")
-        cbox->setToolTip("Make it cycled (concatenate with it's reversed copy)");
-    else if (text == "Mirror")
+        break;
+    case FFmpeg::Mirror:
         cbox->setToolTip("Rotate the movie by 180 degrees");
-    else if (text == "Insert keyframes")
+        break;
+    case FFmpeg::Loop:
+        cbox->setToolTip("Make it cycled (concatenate with it's reversed copy)");
+        break;
+    case FFmpeg::InsertKeyframes:
         cbox->setToolTip("Insert keyframes to the movie.\n"
-                         "Keyframes will be inserted at every 0.1s from the beginning.\n"
+                         "Keyframes will be inserted every 0.1s from the beginning.\n"
                          "This option will help if:\n"
                          "-you got few seconds of audio without video in the start\n"
                          "-you are not satisfied with cut precision\n"
                          "Has no effect on GIF output");
+        break;
+    }
 
     cbox->setToolTip(cbox->toolTip() + "\n\n"
                                        "Any transformations made to the video may lower it's quality");

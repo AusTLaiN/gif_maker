@@ -16,15 +16,15 @@ class MakeMovieDialog : public QDialog
     Q_OBJECT
 
 public:
-    QString getInputFilename() const;
-    void setInputFilename(const QString &filename);
-
-public:
     explicit MakeMovieDialog(QWidget *parent = 0);
     MakeMovieDialog(const QString &input_file_fullname, QWidget *parent = nullptr);
     ~MakeMovieDialog();
 
-    FFmpeg::Behavior getTransformation() const;
+    QString getInputFilename() const;
+    void setInputFilename(const QString &filename);
+
+    FFmpeg::Transform getTransformation() const;
+
     QSize getSize() const;
     int getFps() const;
     QString getResult() const;

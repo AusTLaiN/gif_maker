@@ -265,27 +265,7 @@
           <widget class="QComboBox" name="comboBox_transform">
            <item>
             <property name="text">
-             <string>None</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Reverse</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Mirror</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Loop</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Insert keyframes</string>
+             <string>Test</string>
             </property>
            </item>
           </widget>
@@ -384,6 +364,9 @@
            </property>
            <property name="text">
             <string>Start</string>
+           </property>
+           <property name="default">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
