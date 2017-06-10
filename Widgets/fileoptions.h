@@ -22,6 +22,11 @@ public:
     QString getFilenameWithSuffixes() const;
     QStringList getAvailableExtensions() const;
 
+signals:
+    void filenameChanged(const QString &filename);
+    void directoryChanged(const QString &directory);
+    void extensionChanged(const QString &extension);
+
 public slots:
     void setAvailableExtensions(const QStringList &extensions);
     void setFileName(const QString &filename);
@@ -36,8 +41,8 @@ public slots:
 
 protected slots:
     void clickedBrowse();
-    void extensionChanged();
-    void filenameChanged();
+    void comboBoxExtension_TextChanged();
+    void lineEditFilename_TextChanged();
 
 protected:
     QString filename;

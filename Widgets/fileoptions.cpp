@@ -19,9 +19,19 @@ FileOptions::FileOptions(QWidget *parent) :
     ui->comboBox_extension->setToolTip("Select output file extension");
     ui->lineEdit_filename->setToolTip("Type only filename here, without extension");
 
+
+    connect(ui->comboBox_extension, SIGNAL(currentTextChanged(QString)), this, SIGNAL(extensionChanged(QString)));
+    connect(ui->lineEdit_filename, &QLineEdit::editingFinished, [this](){
+        emit filenameChanged(ui->lineEdit_filename->text());
+    });
+    connect(ui->lineEdit_directory, &QLineEdit::editingFinished, [this](){
+        emit filenameChanged(ui->lineEdit_directory->text());
+    });
+
     connect(ui->button_browse, SIGNAL(clicked(bool)), this, SLOT(clickedBrowse()));
-    connect(ui->comboBox_extension, SIGNAL(currentTextChanged(QString)), this, SLOT(extensionChanged()));
-    connect(ui->lineEdit_filename, SIGNAL(editingFinished()), this, SLOT(filenameChanged()));
+    connect(ui->comboBox_extension, SIGNAL(currentTextChanged(QString)), this, SLOT(comboBoxExtension_TextChanged()));
+    connect(ui->lineEdit_filename, SIGNAL(editingFinished()), this, SLOT(lineEditFilename_TextChanged()));
+
 
     QStringList knownExtensions = QStringList {
             ".avi", ".gif", ".mkv", ".mp4", ".wmv"
@@ -175,13 +185,13 @@ void FileOptions::clickedBrowse()
     }
 }
 
-void FileOptions::extensionChanged()
+void FileOptions::comboBoxExtension_TextChanged()
 {
     number = "";
     checkFilename();
 }
 
-void FileOptions::filenameChanged()
+void FileOptions::lineEditFilename_TextChanged()
 {
     removeAllSuffixes();
     filename = ui->lineEdit_filename->text();
