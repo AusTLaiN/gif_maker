@@ -137,7 +137,7 @@ void FileOptions::removeAllSuffixes(bool check_name)
 
 void FileOptions::checkFilename()
 {
-    qDebug() << "Checking file " << getFullFilename();
+    qDebug() << "FileOptions::checkFilename: filename = " << getFullFilename();
 
     int i = 1;
     do

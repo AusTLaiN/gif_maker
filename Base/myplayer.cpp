@@ -201,11 +201,13 @@ void MyPlayer::createActions()
 
 void MyPlayer::createMenus()
 {
-    menu_file = menuBar()->addMenu("File");
+    /*menu_file = menuBar()->addMenu("File");
     menu_file->addAction(action_open_file);
 
     menu_recent = menu_file->addMenu("Recent");
-    menu_recent->addAction(action_recent_clear);
+    menu_recent->addAction(action_recent_clear);*/
+    menuBar()->addAction(action_open_file);
+    menu_recent = menuBar()->addMenu("Recent files");
 }
 
 void MyPlayer::loadSettings()

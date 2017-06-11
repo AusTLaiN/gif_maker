@@ -20,8 +20,7 @@ MakeMovieDialog::MakeMovieDialog(QWidget *parent) :
     setWindowTitle("Movie options");
 
 
-    ui->verticalLayout_5->addWidget(file_options);
-    ui->verticalLayout_5->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
+    ui->verticalLayout_1->addWidget(file_options);
 
     ui->comboBox_height->setToolTip("Output movie height.\n"
                                     "Scale works only if another dimension set.\n"
@@ -33,8 +32,15 @@ MakeMovieDialog::MakeMovieDialog(QWidget *parent) :
                                  "Fps cannot exceed original value");
 
 
-    connect(ui->button_create, SIGNAL(clicked(bool)), this, SLOT(createMovie()));
-    connect(ui->comboBox_transform, SIGNAL(currentTextChanged(QString)), this, SLOT(comboBoxTransform_textChanged(QString)));
+    connect(ui->button_create, SIGNAL(clicked(bool)), SLOT(createMovie()));
+    connect(ui->comboBox_transform, SIGNAL(currentTextChanged(QString)), SLOT(comboBoxTransform_textChanged(QString)));
+
+    // Validations
+
+    connect(ui->comboBox_width, SIGNAL(editTextChanged(QString)), SLOT(validateTextEditing(QString)));
+    connect(ui->comboBox_height, SIGNAL(editTextChanged(QString)), SLOT(validateTextEditing(QString)));
+    connect(ui->comboBox_fps, SIGNAL(editTextChanged(QString)), SLOT(validateTextEditing(QString)));
+    connect(file_options, SIGNAL(extensionChanged(QString)), SLOT(validateTransformations()));
 
     // Set available transformations
 
@@ -47,10 +53,42 @@ MakeMovieDialog::MakeMovieDialog(QWidget *parent) :
     ui->comboBox_transform->clear();
     ui->comboBox_transform->addItems(availableTransforms);
 
-    //
+    // Available sizes
 
-    resize(640, 150);
-    ui->comboBox_fps->setCurrentText("20");  
+    QStringList sizes;
+    sizes << "Original";
+    sizes << "Scale";
+    sizes << "1080";
+    sizes << "720";
+    sizes << "640";
+    sizes << "480";
+    sizes << "320";
+    sizes << "240";
+
+    ui->comboBox_width->addItems(sizes);
+    ui->comboBox_height->addItems(sizes);
+
+    // Available fps values
+
+    QStringList fps;
+    fps << "60"
+        << "50"
+        << "40"
+        << "30"
+        << "20"
+        << "15"
+        << "10"
+        << "5";
+
+    ui->comboBox_fps->addItems(fps);
+
+    // Default values
+
+    resize(440, 200);
+
+    ui->comboBox_fps->setCurrentText("20");
+    ui->comboBox_width->setCurrentText("Original");
+    ui->comboBox_height->setCurrentText("Original");
     comboBoxTransform_updateTooltip();
 }
 
@@ -65,6 +103,8 @@ MakeMovieDialog::MakeMovieDialog(const QString &input_file_fullname, QWidget *pa
 
     QString name_only = filename.mid(0, i);
     QString extension = filename.mid(i, filename.length() - i);
+
+    input_extension = extension;
 
     file_options->setFileName(name_only);
     file_options->setExtension(".gif");
@@ -127,18 +167,7 @@ void MakeMovieDialog::setTime(const QTime &start, const QTime &end, const QTime 
     t_end = end;
     t_total = total;
 
-    allowTransformation(start.msecsTo(end) == QTime(0, 0, 0).msecsTo(total));
-}
-
-void MakeMovieDialog::allowTransformation(bool allowed)
-{
-    ui->comboBox_transform->setEnabled(allowed);
-
-    if (!allowed)
-    {
-        ui->comboBox_transform->setToolTip("Transformation can be applied only to the entire movie.\n"
-                                           "Clear both markers to enable this option.");
-    }
+    validateTransformations();
 }
 
 void MakeMovieDialog::createMovie()
@@ -231,6 +260,8 @@ void MakeMovieDialog::comboBoxTransform_updateTooltip()
     std::string key = text.toStdString();
     FFmpeg::Transform value = static_cast<FFmpeg::Transform>(metaEnum.keyToValue(key.c_str()));
 
+    //qDebug() << "MakeMovieDialog::comboBoxTransform_updateTooltip: Value = " << value;
+
     switch(value) {
     case FFmpeg::None:
         cbox->setToolTip("Normal behavior without any additional effects");
@@ -246,14 +277,55 @@ void MakeMovieDialog::comboBoxTransform_updateTooltip()
         break;
     case FFmpeg::InsertKeyframes:
         cbox->setToolTip("Insert keyframes to the movie.\n"
+                         "Has no effect on GIF output.\n"
                          "Keyframes will be inserted every 0.1s from the beginning.\n"
                          "This option will help if:\n"
                          "-you got few seconds of audio without video in the start\n"
-                         "-you are not satisfied with cut precision\n"
-                         "Has no effect on GIF output");
+                         "-you are not satisfied with cut precision");
         break;
     }
 
     cbox->setToolTip(cbox->toolTip() + "\n\n"
                                        "Any transformations made to the video may lower it's quality");
+}
+
+void MakeMovieDialog::validateTextEditing(const QString &text)
+{
+    auto cbox = static_cast<QComboBox*>(sender());
+
+    if (text.contains(QRegExp("^[0-9]+$")))
+        return;
+
+    for (int i = 0; i < cbox->count(); ++i)
+    {
+        if (cbox->itemText(i) == text)
+            return;
+    }
+
+    cbox->setCurrentText("");
+}
+
+void MakeMovieDialog::validateTransformations()
+{
+    if (t_start.msecsTo(t_end) != QTime(0, 0, 0).msecsTo(t_total))
+    {
+        ui->comboBox_transform->setEnabled(false);
+        ui->comboBox_transform->setCurrentIndex(0);
+        ui->comboBox_transform->setToolTip("Transformation can be applied only to the entire movie.\n"
+                                           "Clear both markers to enable this option");
+        return;
+    }
+
+    //qDebug() << "MakeMovieDialog::validateTransformations: Input fname extension = " << input_extension;
+
+    if (file_options->getExtension() != input_extension)
+    {
+        ui->comboBox_transform->setEnabled(false);
+        ui->comboBox_transform->setCurrentIndex(0);
+        ui->comboBox_transform->setToolTip("Transformation and conversion to another format cannot be done together");
+        return;
+    }
+
+    ui->comboBox_transform->setEnabled(true);
+    comboBoxTransform_updateTooltip();
 }

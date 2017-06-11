@@ -31,15 +31,17 @@ public:
 
 public slots:
     void setTime(const QTime &start, const QTime &end, const QTime &total);
-    void allowTransformation(bool allowed);
     void createMovie();
 
 protected slots:
     void comboBoxTransform_textChanged(const QString &text);
     void comboBoxTransform_updateTooltip();
+    void validateTextEditing(const QString &text);
+    void validateTransformations();
 
 protected:
     FileOptions *file_options;
+    QString input_extension;
     
     QTime t_start;
     QTime t_end;
