@@ -4,12 +4,14 @@
 #include <QDebug>
 
 MyPlayer::MyPlayer(QWidget *parent):
-    QWidget(parent),
+    QMainWindow(parent),
     player(new QMediaPlayer(this))
 {  
     createWidgets();
     createLayouts();
     createConnections();
+    createActions();
+    createMenus();
 
     player->setVideoOutput(video_widget);
     player->setNotifyInterval(50);
@@ -33,12 +35,12 @@ void MyPlayer::createWidgets()
     slider_duration = new DurationSlider();
 
     label_duration = new QLabel;
-    label_duration->setMinimumWidth(100);
+    label_duration->setMinimumWidth(110);
     label_duration->setToolTip("Current time/Duration");
 
-    button_open = new QPushButton("Open");
+    /*button_open = new QPushButton("Open");
     button_open->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
-    button_open->setToolTip("Open file");
+    button_open->setToolTip("Open file");*/
 
     seek_buttons = new SeekButtons;
 
@@ -58,19 +60,24 @@ void MyPlayer::createLayouts()
 
     QHBoxLayout *layout_controls = new QHBoxLayout();
     layout_controls->setMargin(0);
-    layout_controls->addWidget(button_open);
-    layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
+    //layout_controls->addWidget(button_open);
+    //layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
     layout_controls->addWidget(controls);
-    layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
+    //layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
+    layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
     layout_controls->addWidget(seek_buttons);
-    layout_controls->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
     layout_controls->addWidget(label_duration);
 
     QVBoxLayout *layout_markers = new QVBoxLayout();
+    layout_markers->setMargin(0);
+    layout_markers->setSpacing(2);
     layout_markers->addWidget(marker1);
     layout_markers->addWidget(marker2);
 
     QHBoxLayout *layout_options = new QHBoxLayout();
+    layout_options->addSpacerItem(new QSpacerItem(142, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
+    //layout_options->addSpacerItem(new QSpacerItem(controls->width(), 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
     layout_options->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
     layout_options->addLayout(layout_markers);
     layout_options->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
@@ -82,16 +89,27 @@ void MyPlayer::createLayouts()
     layout_misc->addWidget(button_create);
     layout_misc->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
+    QHBoxLayout *layout_duration = new QHBoxLayout;
+    layout_duration->addSpacerItem(new QSpacerItem(5, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
+    layout_duration->addWidget(slider_duration);
+    layout_duration->addSpacerItem(new QSpacerItem(5, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
+
     second_layout->setMargin(5);
-    second_layout->addWidget(slider_duration);
+    //second_layout->addWidget(slider_duration);
     second_layout->addLayout(layout_controls);
     second_layout->addLayout(layout_options);
 
     main_layout->setMargin(0);
     main_layout->addWidget(video_widget);
+    //main_layout->addWidget(slider_duration);
+    main_layout->addLayout(layout_duration);
     main_layout->addLayout(second_layout);
 
-    setLayout(main_layout);
+    QWidget *central_widget = new QWidget();
+    central_widget->setLayout(main_layout);
+
+    //setLayout(main_layout);
+    setCentralWidget(central_widget);
 }
 
 void MyPlayer::createConnections()
@@ -117,7 +135,7 @@ void MyPlayer::createConnections()
 
     connect(player, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
 
-    connect(button_open, SIGNAL(clicked(bool)), this, SLOT(openFile()));
+    //connect(button_open, SIGNAL(clicked(bool)), this, SLOT(openFile()));
     connect(button_create, SIGNAL(clicked(bool)), this, SLOT(createMovie()));
 
     // Connections with player controls
@@ -168,6 +186,26 @@ void MyPlayer::createConnections()
         connect(item, SIGNAL(clicked_move()), this, SLOT(moveToMarker()));
     }
 
+}
+
+void MyPlayer::createActions()
+{
+    action_open_file = new QAction("Open", this);
+    action_open_file->setShortcuts(QKeySequence::Open);
+    action_open_file->setStatusTip(tr("Open local file"));
+    connect(action_open_file, &QAction::triggered, this, &MyPlayer::openFile);
+
+    action_recent_clear = new QAction("Clear", this);
+    action_open_file->setStatusTip(tr("Clear recent files list"));
+}
+
+void MyPlayer::createMenus()
+{
+    menu_file = menuBar()->addMenu("File");
+    menu_file->addAction(action_open_file);
+
+    menu_recent = menu_file->addMenu("Recent");
+    menu_recent->addAction(action_recent_clear);
 }
 
 void MyPlayer::loadSettings()

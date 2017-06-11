@@ -5,9 +5,10 @@
 #include "Widgets/widgets.h"
 
 #include <QVideoWidget>
+#include <QMainWindow>
 #include <QLabel>
 
-class MyPlayer : public QWidget
+class MyPlayer : public QMainWindow
 {
     Q_OBJECT
 
@@ -44,20 +45,31 @@ protected:
     void createWidgets();
     void createLayouts();
     void createConnections();
+    void createActions();
+    void createMenus();
 
 protected:
     MyVideoWidget *video_widget;
     DurationSlider *slider_duration;
     QLabel *label_duration;
-    QPushButton *button_open, *button_create;
+    //QPushButton *button_open;
+    QPushButton *button_create;
 
     QMediaPlayer *player;
 
     PlayerControls *controls;
-    Marker *marker1, *marker2;
+    Marker *marker1;
+    Marker *marker2;
     SeekButtons *seek_buttons;
 
-    QString movies_directory, current_file;
+    QString movies_directory;
+    QString current_file;
+
+    QMenu *menu_file;
+    QMenu *menu_recent;
+
+    QAction *action_open_file;
+    QAction *action_recent_clear;
 };
 
 #endif // MYPLAYER_H

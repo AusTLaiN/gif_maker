@@ -6,11 +6,12 @@ PlayerControls::PlayerControls(QWidget *parent) :
     QWidget(parent),
     button_play(new QPushButton),
     button_mute(new QPushButton),
-    slider_volume(new QSlider(Qt::Horizontal))
+    slider_volume(new VolumeSlider)
 {
     connect(button_play, SIGNAL(clicked(bool)), this, SLOT(buttonPlay_clicked()));
     connect(button_mute, SIGNAL(clicked(bool)), this, SLOT(buttonMute_clicked()));
-    connect(slider_volume, SIGNAL(valueChanged(int)), this, SIGNAL(changeVolume(int)));
+    //connect(slider_volume, SIGNAL(valueChanged(int)), this, SIGNAL(changeVolume(int)));
+    connect(slider_volume, SIGNAL(volumeChanged(int)), SIGNAL(changeVolume(int)));
 
     QHBoxLayout *layout = new QHBoxLayout;
 
@@ -27,15 +28,12 @@ PlayerControls::PlayerControls(QWidget *parent) :
 
     button_mute->setToolTip("Mute/Unmute");
     button_play->setToolTip("Play/Pause");
-    slider_volume->setToolTip("Volume");
 
     // Default values
 
     playerMuted = false;
     button_mute->setIcon(style()->standardIcon(QStyle::SP_MediaVolume));
     setMediaPlayerState(QMediaPlayer::PausedState);
-    slider_volume->setRange(0, 100);
-    slider_volume->setMaximumWidth(100);
 }
 
 QMediaPlayer::State PlayerControls::getMediaPlayerState() const
@@ -74,7 +72,7 @@ void PlayerControls::setMediaPlayerState(QMediaPlayer::State state)
 
 void PlayerControls::setVolume(int volume)
 {
-    slider_volume->setValue(volume);
+    slider_volume->setVolume(volume);
 }
 
 void PlayerControls::setMuted(bool muted)

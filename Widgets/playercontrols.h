@@ -1,6 +1,8 @@
 #ifndef PLAYERCONTROLS_H
 #define PLAYERCONTROLS_H
 
+#include "volumeslider.h"
+
 #include <QMediaPlayer>
 #include <QWidget>
 #include <QPushButton>
@@ -38,7 +40,7 @@ protected:
     QMediaPlayer::State playerState;
 
     QPushButton *button_play, *button_mute;
-    QSlider *slider_volume;
+    VolumeSlider *slider_volume;
 };
 
 #endif // PLAYERCONTROLS_H

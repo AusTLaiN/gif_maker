@@ -39,7 +39,8 @@ SOURCES += \
     Widgets/durationslider.cpp \
     Base/ffmpeg.cpp \
     Base/main.cpp \
-    Base/myplayer.cpp
+    Base/myplayer.cpp \
+    Widgets/volumeslider.cpp
 
 HEADERS  += \
     Dialogs/waitdialog.h \
@@ -52,7 +53,8 @@ HEADERS  += \
     Widgets/marker.h \
     Widgets/durationslider.h \
     Base/ffmpeg.h \
-    Base/myplayer.h
+    Base/myplayer.h \
+    Widgets/volumeslider.h
 
 DISTFILES += \
     .gitignore

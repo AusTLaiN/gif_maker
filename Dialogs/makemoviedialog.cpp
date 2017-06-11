@@ -67,7 +67,6 @@ MakeMovieDialog::MakeMovieDialog(const QString &input_file_fullname, QWidget *pa
     QString extension = filename.mid(i, filename.length() - i);
 
     file_options->setFileName(name_only);
-    //file_options->setExtension(extension);
     file_options->setExtension(".gif");
 }
 
