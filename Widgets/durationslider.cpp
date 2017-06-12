@@ -69,14 +69,8 @@ void DurationSlider::mousePressEvent(QMouseEvent *event)
     {
         qint64 new_value = minimum() + ((maximum()-minimum()) * event->x()) / width();
 
-        //qDebug() << "DurationSlider::mousePressEvent: new value = " + QString::number(new_value);
-
         setValue(new_value);
         onSliderMoved(new_value);
-
-        /*qDebug() << "DurationSlider::mousePressEvent: minimum = " + QString::number(minimum());
-        qDebug() << "DurationSlider::mousePressEvent: value = " + QString::number(value());
-        qDebug() << "DurationSlider::mousePressEvent: maximum = " + QString::number(maximum());*/
     }
 
     event->accept();
@@ -87,11 +81,9 @@ void DurationSlider::mouseMoveEvent(QMouseEvent *event)
 {
     QPoint location;
     location.setX(event->globalX());
-    location.setY(this->mapToGlobal(QPoint(-5, -50)).y());
+    location.setY(this->mapToGlobal(QPoint(-5, -45)).y());
 
     qint64 val = minimum() + ((maximum()-minimum()) * event->x()) / width();
-
-    //qDebug() << "Draw" << QTime::currentTime();
 
     QTime t = QTime(0, 0, 0).addMSecs(val * step);
     QStringList time_str;

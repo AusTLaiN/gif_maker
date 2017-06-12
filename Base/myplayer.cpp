@@ -56,18 +56,18 @@ void MyPlayer::createWidgets()
 void MyPlayer::createLayouts()
 {
     QVBoxLayout *main_layout = new QVBoxLayout();
-    QVBoxLayout *second_layout = new QVBoxLayout();
 
-    QHBoxLayout *layout_controls = new QHBoxLayout();
-    layout_controls->setMargin(0);
-    //layout_controls->addWidget(button_open);
-    //layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
-    layout_controls->addWidget(controls);
-    //layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
-    layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
-    layout_controls->addWidget(seek_buttons);
-    layout_controls->addSpacerItem(new QSpacerItem(10, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
-    layout_controls->addWidget(label_duration);
+    label_duration->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+    QHBoxLayout *layout_seek = new QHBoxLayout;
+    layout_seek->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
+    layout_seek->addWidget(seek_buttons);
+    layout_seek->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
+
+    QHBoxLayout *layout_duration = new QHBoxLayout;
+    layout_duration->addSpacerItem(new QSpacerItem(5, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
+    layout_duration->addWidget(slider_duration);
+    layout_duration->addSpacerItem(new QSpacerItem(5, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
 
     QVBoxLayout *layout_markers = new QVBoxLayout();
     layout_markers->setMargin(0);
@@ -75,40 +75,38 @@ void MyPlayer::createLayouts()
     layout_markers->addWidget(marker1);
     layout_markers->addWidget(marker2);
 
-    QHBoxLayout *layout_options = new QHBoxLayout();
-    layout_options->addSpacerItem(new QSpacerItem(142, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
-    //layout_options->addSpacerItem(new QSpacerItem(controls->width(), 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
-    layout_options->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
-    layout_options->addLayout(layout_markers);
-    layout_options->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
-    layout_options->addWidget(button_create);
+    QHBoxLayout *layout_markers2 = new QHBoxLayout;
+    layout_markers2->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
+    layout_markers2->addLayout(layout_markers);
+    layout_markers2->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
-    QHBoxLayout *layout_misc = new QHBoxLayout;
-    layout_misc->setMargin(0);
-    layout_misc->setSpacing(5);
-    layout_misc->addWidget(button_create);
-    layout_misc->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    QGridLayout *grid_layout = new QGridLayout;
+    grid_layout->setMargin(5);
+    grid_layout->setSpacing(0);
 
-    QHBoxLayout *layout_duration = new QHBoxLayout;
-    layout_duration->addSpacerItem(new QSpacerItem(5, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
-    layout_duration->addWidget(slider_duration);
-    layout_duration->addSpacerItem(new QSpacerItem(5, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
+    grid_layout->addWidget(controls, 0, 0);
+    grid_layout->addLayout(layout_seek, 0, 1);
+    grid_layout->addWidget(label_duration, 0, 2);
 
-    second_layout->setMargin(5);
-    //second_layout->addWidget(slider_duration);
-    second_layout->addLayout(layout_controls);
-    second_layout->addLayout(layout_options);
+    grid_layout->addLayout(layout_markers2, 1, 1);
+    grid_layout->addWidget(button_create, 1, 2, Qt::AlignBottom | Qt::AlignRight);
+
+    grid_layout->setColumnMinimumWidth(0, 160);
+    grid_layout->setColumnMinimumWidth(2, 160);
+
+    QWidget *grid_widget = new QWidget;
+    grid_widget->setLayout(grid_layout);
+    grid_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     main_layout->setMargin(0);
+    main_layout->setSpacing(3);
     main_layout->addWidget(video_widget);
-    //main_layout->addWidget(slider_duration);
     main_layout->addLayout(layout_duration);
-    main_layout->addLayout(second_layout);
+    main_layout->addWidget(grid_widget);
 
     QWidget *central_widget = new QWidget();
     central_widget->setLayout(main_layout);
 
-    //setLayout(main_layout);
     setCentralWidget(central_widget);
 }
 

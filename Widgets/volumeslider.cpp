@@ -58,7 +58,7 @@ void VolumeSlider::setVolume(int value)
 
 void VolumeSlider::showTooltip()
 {
-    QPoint point(mapToGlobal(QPoint(-3, -43)));
+    QPoint point(mapToGlobal(QPoint(-3, -38)));
     QToolTip::showText(point, toolTip(), this);
 }
 
