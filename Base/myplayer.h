@@ -34,6 +34,9 @@ protected slots:
 
     void createMovie();
 
+    void actionOpenRecent();
+    void actionRecentClear();
+
     void handlePlayerError(QMediaPlayer::Error error);
 
 protected:
@@ -42,17 +45,19 @@ protected:
     void loadSettings();
     void saveSettings() const;
 
+    void updateRecent(const QString &file);
+
     void createWidgets();
     void createLayouts();
     void createConnections();
     void createActions();
     void createMenus();
+    void createMenuRecent();
 
 protected:
     MyVideoWidget *video_widget;
     DurationSlider *slider_duration;
     QLabel *label_duration;
-    //QPushButton *button_open;
     QPushButton *button_create;
 
     QMediaPlayer *player;
@@ -64,6 +69,8 @@ protected:
 
     QString movies_directory;
     QString current_file;
+
+    QStringList recent_files;
 
     QMenu *menu_file;
     QMenu *menu_recent;

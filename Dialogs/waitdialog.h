@@ -24,10 +24,6 @@ public:
     ~WaitDialog();
 
 public slots:
-    void enableButtonOpen(bool enabled);
-    void enableButtonCancel(bool enabled);
-    void enableButtonOk(bool enabled);
-    void enableBUttonShow(bool enabled);
     void showResult(const QStringList &errors);
     void setStatusInfo(const QString &info);
 

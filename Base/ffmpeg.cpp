@@ -374,7 +374,7 @@ void FFmpeg::run()
     }
     else
     {
-        handleError("Failed to start due to errors earlier");
+        handleError("Failed to start due to previous errors");
     }
 }
 

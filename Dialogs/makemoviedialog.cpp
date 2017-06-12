@@ -224,6 +224,8 @@ void MakeMovieDialog::createMovie()
         QProcess::startDetached("explorer.exe", args);
         break;
     }
+    case WaitDialog::Ok:
+        break;
     default:
         qDebug("MakeMovieDialog::createMovie: Unknown WaitDialogResult %i", res);
     }

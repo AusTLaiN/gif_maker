@@ -20,6 +20,14 @@ MyPlayer::MyPlayer(QWidget *parent):
     setPosition(0);
 
     loadSettings();
+
+    createMenuRecent();
+}
+
+void MyPlayer::actionRecentClear()
+{
+    recent_files.clear();
+    createMenuRecent();
 }
 
 void MyPlayer::closeEvent(QCloseEvent *event)
@@ -192,20 +200,26 @@ void MyPlayer::createActions()
     action_open_file->setShortcuts(QKeySequence::Open);
     action_open_file->setStatusTip(tr("Open local file"));
     connect(action_open_file, &QAction::triggered, this, &MyPlayer::openFile);
-
-    action_recent_clear = new QAction("Clear", this);
-    action_open_file->setStatusTip(tr("Clear recent files list"));
 }
 
 void MyPlayer::createMenus()
 {
-    /*menu_file = menuBar()->addMenu("File");
-    menu_file->addAction(action_open_file);
-
-    menu_recent = menu_file->addMenu("Recent");
-    menu_recent->addAction(action_recent_clear);*/
     menuBar()->addAction(action_open_file);
     menu_recent = menuBar()->addMenu("Recent files");
+}
+
+void MyPlayer::createMenuRecent()
+{
+    menu_recent->clear();
+    auto act_clear = menu_recent->addAction("Clear");
+    connect(act_clear, SIGNAL(triggered(bool)), SLOT(actionRecentClear()));
+
+    foreach (const QString &item, recent_files)
+    {
+        auto action = menu_recent->addAction(item);
+
+        connect(action, SIGNAL(triggered(bool)), SLOT(actionOpenRecent()));
+    }
 }
 
 void MyPlayer::loadSettings()
@@ -216,6 +230,7 @@ void MyPlayer::loadSettings()
     QPoint pos = settings.value("Window position", QPoint(100, 50)).toPoint();
     QSize size = settings.value("Window size", QSize(800, 600)).toSize();
     QString movies_directory_tmp = settings.value("Movies directory", QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath())).toString();
+    QStringList recent = settings.value("Recent files", QStringList()).toStringList();
 
     settings.beginGroup("Player");
     int volume = settings.value("Volume", 15).toInt();
@@ -224,9 +239,10 @@ void MyPlayer::loadSettings()
 
     // Applying
 
-    this->resize(size);
-    this->move(pos);
+    resize(size);
+    move(pos);
     movies_directory = movies_directory_tmp;
+    recent_files = recent;
 
     player->setVolume(volume);
     player->setMuted(muted);
@@ -237,14 +253,27 @@ void MyPlayer::saveSettings() const
     QSettings settings(QSettings::IniFormat, QSettings::UserScope,
                        QCoreApplication::organizationName() , QCoreApplication::applicationName());
 
-    settings.setValue("Window position", this->pos());
-    settings.setValue("Window size", this->size());
-    settings.setValue("Movies directory", this->movies_directory);
+    settings.setValue("Window position", pos());
+    settings.setValue("Window size", size());
+    settings.setValue("Movies directory", movies_directory);
+    settings.setValue("Recent files", recent_files);
 
     settings.beginGroup("Player");
     settings.setValue("Volume", player->volume());
     settings.setValue("Muted", player->isMuted());
     settings.endGroup();
+}
+
+void MyPlayer::updateRecent(const QString &file)
+{
+    if (recent_files.contains(file))
+    {
+        recent_files.removeAll(file);
+    }
+
+    recent_files.prepend(file);
+
+    createMenuRecent();
 }
 
 void MyPlayer::pause()
@@ -266,6 +295,8 @@ void MyPlayer::setFile(const QString &file)
 
     setWindowTitle(QCoreApplication::applicationName() + " - " + filename);
     current_file = file;
+
+    updateRecent(file);
 
     play();
 }
@@ -378,6 +409,14 @@ void MyPlayer::createMovie()
 
     if (!dlg.getResult().isEmpty())
         setFile(dlg.getResult());
+}
+
+void MyPlayer::actionOpenRecent()
+{
+    QAction *action = static_cast<QAction*>(sender());
+    QString filename = action->text();
+
+    setFile(filename);
 }
 
 void MyPlayer::handlePlayerError(QMediaPlayer::Error error)
