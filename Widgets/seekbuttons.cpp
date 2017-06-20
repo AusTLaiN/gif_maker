@@ -43,6 +43,7 @@ SeekButtons::SeekButtons(QWidget *parent)
         {
             buttons[i][j] = new QPushButton;
             buttons[i][j]->setFixedWidth(50);
+            buttons[i][j]->setCursor(Qt::PointingHandCursor);
 
             buttons[i][j]->setIcon(style()->standardIcon(j ? QStyle::SP_MediaSeekForward
                                                            : QStyle::SP_MediaSeekBackward));

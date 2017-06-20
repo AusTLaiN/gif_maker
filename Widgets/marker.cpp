@@ -8,6 +8,10 @@ Marker::Marker(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->button_clear->setCursor(Qt::PointingHandCursor);
+    ui->button_move->setCursor(Qt::PointingHandCursor);
+    ui->button_setMarker->setCursor(Qt::PointingHandCursor);
+
     ui->button_setMarker->setToolTip("Create marker at current position");
     ui->button_clear->setToolTip("Clear this marker");
     ui->button_move->setToolTip("Move to this marker's time");

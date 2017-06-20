@@ -36,6 +36,7 @@ VolumeSlider::VolumeSlider(QWidget *parent) :
     setMaximumWidth(100);
     setOrientation(Qt::Horizontal);
     setMouseTracking(true);
+    setCursor(Qt::PointingHandCursor);
 
     connect(this, SIGNAL(valueChanged(int)), SIGNAL(volumeChanged(int)));
 

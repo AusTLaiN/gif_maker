@@ -29,6 +29,9 @@ PlayerControls::PlayerControls(QWidget *parent) :
     button_mute->setToolTip("Mute/Unmute");
     button_play->setToolTip("Play/Pause");
 
+    button_mute->setCursor(Qt::PointingHandCursor);
+    button_play->setCursor(Qt::PointingHandCursor);
+
     // Default values
 
     playerMuted = false;

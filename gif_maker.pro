@@ -22,8 +22,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-win32:RC_ICONS += Resources/1.ico
-
 FORMS += \
     Dialogs/waitdialog.ui \
     Dialogs/makemoviedialog.ui \
@@ -60,5 +58,7 @@ HEADERS  += \
 
 DISTFILES += \
     .gitignore \
-    Resources/gif-icon.png \
-    Resources/1.ico
+    Resources/res.rc \
+    Resources/Icon1.ico
+
+RC_FILE = Resources/res.rc

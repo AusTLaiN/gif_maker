@@ -46,15 +46,12 @@ void MyPlayer::createWidgets()
     label_duration->setMinimumWidth(110);
     label_duration->setToolTip("Current time/Duration");
 
-    /*button_open = new QPushButton("Open");
-    button_open->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
-    button_open->setToolTip("Open file");*/
-
     seek_buttons = new SeekButtons;
 
     button_create = new QPushButton("Create movie");
     button_create->setFixedWidth(100);
     button_create->setToolTip("Select options and create a movie");
+    button_create->setCursor(Qt::PointingHandCursor);
 
     controls = new PlayerControls;
     marker1 = new Marker("Start position :");
@@ -270,9 +267,12 @@ void MyPlayer::updateRecent(const QString &file)
     {
         recent_files.removeAll(file);
     }
+    else if (recent_files.count() >= recent_limit)
+    {
+        return;
+    }
 
     recent_files.prepend(file);
-
     createMenuRecent();
 }
 

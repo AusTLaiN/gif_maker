@@ -13,6 +13,9 @@ class MyPlayer : public QMainWindow
     Q_OBJECT
 
 public:
+    static const int recent_limit = 20;
+
+public:
     explicit MyPlayer(QWidget *parent = 0);
     ~MyPlayer() = default;
 

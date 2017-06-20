@@ -35,8 +35,9 @@ DurationSlider::DurationSlider(QWidget *parent) :
     setRange(0, 0);
     setOrientation(Qt::Horizontal);
     setMouseTracking(true);
+    setCursor(Qt::PointingHandCursor);
 
-    connect(this, SIGNAL(sliderMoved(int)), this, SLOT(onSliderMoved(int)));
+    connect(this, SIGNAL(sliderMoved(int)), this, SLOT(onSliderMoved(int))); 
 }
 
 void DurationSlider::setPosition(qint64 msecs)
