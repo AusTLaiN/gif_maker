@@ -104,7 +104,6 @@ protected:
     Transform behavior;
     GifQuality gif_quality;
 
-    //QSharedPointer<QProcess> proc;
     QScopedPointer<QProcess> proc;
     QStringList args;
 
