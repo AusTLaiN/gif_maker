@@ -59,11 +59,13 @@ HEADERS  += \
 DISTFILES += \
     .gitignore \
     Resources/res.rc \
-    Resources/Icon1.ico \
     Resources/Icon/128x128.png \
     Resources/Icon/256x256.png \
     Resources/Icon/32x32.png \
     Resources/Icon/64x64.png \
+    Resources/Icon/16x16.png \
+    Resources/Icon/40x40.png \
+    Resources/Icon/48x48.png \
     Resources/Icon/Icon.ico
 
 RC_FILE = Resources/res.rc
