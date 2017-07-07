@@ -76,7 +76,7 @@ void MyPlayer::createLayouts()
 
     QVBoxLayout *layout_markers = new QVBoxLayout();
     layout_markers->setMargin(0);
-    layout_markers->setSpacing(2);
+    layout_markers->setSpacing(1);
     layout_markers->addWidget(marker1);
     layout_markers->addWidget(marker2);
 
@@ -87,7 +87,7 @@ void MyPlayer::createLayouts()
 
     QGridLayout *grid_layout = new QGridLayout;
     grid_layout->setMargin(5);
-    grid_layout->setSpacing(0);
+    grid_layout->setSpacing(2);
 
     grid_layout->addWidget(controls, 0, 0);
     grid_layout->addLayout(layout_seek, 0, 1);

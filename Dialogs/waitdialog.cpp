@@ -23,6 +23,11 @@ WaitDialog::WaitDialog(QDialog *parent) :
     ui->button_ok->setVisible(false);
     ui->button_show->setVisible(false);
     ui->button_open->setVisible(false);
+
+    ui->button_ok->setCursor(Qt::PointingHandCursor);
+    ui->button_open->setCursor(Qt::PointingHandCursor);
+    ui->button_show->setCursor(Qt::PointingHandCursor);
+    ui->button_cancel->setCursor(Qt::PointingHandCursor);
 }
 
 WaitDialog::~WaitDialog()

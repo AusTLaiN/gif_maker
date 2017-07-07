@@ -90,6 +90,8 @@ MakeMovieDialog::MakeMovieDialog(QWidget *parent) :
     ui->comboBox_width->setCurrentText("Original");
     ui->comboBox_height->setCurrentText("Original");
     comboBoxTransform_updateTooltip();
+
+    ui->button_create->setCursor(Qt::PointingHandCursor);
 }
 
 MakeMovieDialog::MakeMovieDialog(const QString &input_file_fullname, QWidget *parent) :

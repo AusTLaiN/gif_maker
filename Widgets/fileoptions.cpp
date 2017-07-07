@@ -16,6 +16,7 @@ FileOptions::FileOptions(QWidget *parent) :
 
     ui->button_browse->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));   
     ui->button_browse->setToolTip("Select where new files should be saved");
+    ui->button_browse->setCursor(Qt::PointingHandCursor);
     ui->comboBox_extension->setToolTip("Select output file extension");
     ui->lineEdit_filename->setToolTip("Type only filename here, without extension");
 
