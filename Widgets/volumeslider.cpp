@@ -53,7 +53,8 @@ void VolumeSlider::setVolume(int value)
 {
     setValue(value);
 
-    QString text = "Volume: " + QString::number(value) + "%";
+    //QString text = "Volume: " + QString::number(value) + "%";
+    QString text = QString("Volume: %1%").arg(value);
     setToolTip(text);
 }
 
@@ -65,7 +66,22 @@ void VolumeSlider::showTooltip()
 
 void VolumeSlider::mousePressEvent(QMouseEvent *event)
 {
+    QStyleOptionSlider opt;
+    initStyleOption(&opt);
+    QRect sr = style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderHandle, this);
+
+    // If mouse is hovering over slider handle, this should be skipped
+    // and drag-n-drop action performed instead ( default behavior )
+    if (event->button() == Qt::LeftButton &&
+        sr.contains(event->pos()) == false)
+    {
+        qint64 new_value = minimum() + ((maximum()-minimum()) * event->x()) / width();
+
+        setVolume(new_value);
+    }
+
     tooltip_timer->start();
+
     event->accept();
     QSlider::mousePressEvent(event);
 }

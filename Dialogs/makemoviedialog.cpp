@@ -211,6 +211,7 @@ void MakeMovieDialog::createMovie()
 
     ffmpeg->moveToThread(thread.data());
     thread->start();
+    this->hide();
     int res = dlg.exec();
 
     switch(res) {

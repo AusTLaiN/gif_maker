@@ -158,7 +158,7 @@ void MyPlayer::createConnections()
 
     // Auto-repeat
     connect(player, &QMediaPlayer::stateChanged, [&, this](QMediaPlayer::State state){
-        if (state == QMediaPlayer::StoppedState && player->position() >= player->duration()
+        if (state == QMediaPlayer::StoppedState && player->position() > player->duration()
             && player->error() == QMediaPlayer::NoError)
         {
             qDebug() << "Repeat";
@@ -269,7 +269,7 @@ void MyPlayer::updateRecent(const QString &file)
     }
     else if (recent_files.count() >= recent_limit)
     {
-        return;
+        recent_files.removeLast();
     }
 
     recent_files.prepend(file);
