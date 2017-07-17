@@ -14,7 +14,8 @@ int main(int argc, char *argv[])
 
     if (argc == 2)
     {
-        player.setFile(QFile(argv[1]).fileName());
+        QString filename = a.arguments().last();
+        player.setFile(filename);
     }
 
     player.show();

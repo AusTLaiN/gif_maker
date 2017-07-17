@@ -15,9 +15,15 @@ public:
 signals:
     void mousePressed();
 
+public slots:
+    void setFullScreenWidget(QWidget *widget);
+
 protected slots:
     void hideMouse();
     void beginHiding();
+    void stopHiding();
+
+    void onFullScreenChanged(bool fullscreen);
 
 protected:
     virtual void keyPressEvent(QKeyEvent *event) override;
@@ -28,6 +34,7 @@ protected:
 protected:
     QElapsedTimer timer;
     QTimer timer_hide_mouse;
+    QWidget *fullscreen_widget;
 };
 
 #endif // MYVIDEOWIDGET_H

@@ -10,7 +10,6 @@ PlayerControls::PlayerControls(QWidget *parent) :
 {
     connect(button_play, SIGNAL(clicked(bool)), this, SLOT(buttonPlay_clicked()));
     connect(button_mute, SIGNAL(clicked(bool)), this, SLOT(buttonMute_clicked()));
-    //connect(slider_volume, SIGNAL(valueChanged(int)), this, SIGNAL(changeVolume(int)));
     connect(slider_volume, SIGNAL(volumeChanged(int)), SIGNAL(changeVolume(int)));
 
     QHBoxLayout *layout = new QHBoxLayout;
@@ -31,6 +30,23 @@ PlayerControls::PlayerControls(QWidget *parent) :
 
     button_mute->setCursor(Qt::PointingHandCursor);
     button_play->setCursor(Qt::PointingHandCursor);
+
+    button_mute->setStyleSheet("QPushButton {"
+                               "width: 22px;"
+                               "height: 22px;"
+                               "border-width: 1px;"
+                               "border-style: solid;"
+                               "border-color: grey;"
+                               "border-radius: 4px;"
+                               "}");
+    button_play->setStyleSheet("QPushButton {"
+                               "width: 22px;"
+                               "height: 22px;"
+                               "border-width: 1px;"
+                               "border-style: solid;"
+                               "border-color: grey;"
+                               "border-radius: 4px;"
+                               "}");
 
     // Default values
 

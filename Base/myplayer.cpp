@@ -12,6 +12,7 @@ MyPlayer::MyPlayer(QWidget *parent):
     createConnections();
     createActions();
     createMenus();
+    createFullscreenWidget();
 
     player->setVideoOutput(video_widget);
     player->setNotifyInterval(50);
@@ -135,18 +136,15 @@ void MyPlayer::createConnections()
     // Misc connections
 
     connect(player, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(handlePlayerError(QMediaPlayer::Error)));
-
     connect(player, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
-
-    //connect(button_open, SIGNAL(clicked(bool)), this, SLOT(openFile()));
     connect(button_create, SIGNAL(clicked(bool)), this, SLOT(createMovie()));
 
     // Connections with player controls
 
     connect(video_widget, SIGNAL(mousePressed()), controls, SLOT(buttonPlay_clicked()));
 
-    connect(controls, SIGNAL(play()), player, SLOT(play()));
-    connect(controls, SIGNAL(pause()), player, SLOT(pause()));
+    connect(controls, SIGNAL(play()), this, SLOT(play()));
+    connect(controls, SIGNAL(pause()), this, SLOT(pause()));
     connect(player, SIGNAL(stateChanged(QMediaPlayer::State)), controls, SLOT(setMediaPlayerState(QMediaPlayer::State)));
 
     connect(controls, SIGNAL(changeVolume(int)), player, SLOT(setVolume(int)));
@@ -154,6 +152,10 @@ void MyPlayer::createConnections()
 
     connect(controls, SIGNAL(changeMuting(bool)), player, SLOT(setMuted(bool)));
     connect(player, SIGNAL(mutedChanged(bool)), controls, SLOT(setMuted(bool)));
+
+    // Label text
+
+    connect(this, SIGNAL(durationInfoChanged(QString)), label_duration, SLOT(setText(QString)));
 
 
     // Auto-repeat
@@ -219,6 +221,70 @@ void MyPlayer::createMenuRecent()
     }
 }
 
+void MyPlayer::createFullscreenWidget()
+{
+    auto widget = new QWidget;
+    auto hLayout1 = new QHBoxLayout;
+    auto vLayout1 = new QVBoxLayout;
+
+    //widget->setWindowFlags(Qt::CustomizeWindowHint);
+    widget->setWindowFlags(Qt::FramelessWindowHint);
+
+    hLayout1->setMargin(0);
+    hLayout1->setSpacing(0);
+    vLayout1->setMargin(5);
+    vLayout1->setSpacing(0);
+
+    auto slider_dur = new DurationSlider;
+    auto buttons = new PlayerControls;
+    auto label = new QLabel;
+
+    label->setText("Current time/Duration");
+    label->setMinimumWidth(110);
+
+    hLayout1->addWidget(buttons);
+    hLayout1->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+    hLayout1->addWidget(label);
+
+    vLayout1->addWidget(slider_dur);
+    vLayout1->addLayout(hLayout1);
+
+    widget->setLayout(vLayout1);
+    widget->setMaximumHeight(70);
+    widget->setStyleSheet("background-color: #DDDDDD");
+
+    video_widget->setFullScreenWidget(widget);
+    fullScreen_widget = widget;
+
+    // Connections
+
+    connect(slider_dur, &DurationSlider::sliderPressed, [this, slider_dur](){
+        disconnect(player, SIGNAL(positionChanged(qint64)), slider_dur, SLOT(setPosition(qint64)));
+    });
+    connect(slider_dur, &DurationSlider::sliderReleased, [this, slider_dur](){
+        connect(player, SIGNAL(positionChanged(qint64)), slider_dur, SLOT(setPosition(qint64)));
+    });
+    connect(player, SIGNAL(positionChanged(qint64)), slider_dur, SLOT(setPosition(qint64)));
+    connect(slider_dur, SIGNAL(positionChanged(qint64)), this, SLOT(setPosition(qint64)));
+
+    // Connections with controls
+
+    connect(player, &QMediaPlayer::durationChanged, [slider_dur](qint64 duration) {
+        slider_dur->setRange(0, duration / 100);
+    });
+    connect(this, SIGNAL(durationInfoChanged(QString)), label, SLOT(setText(QString)));
+
+    connect(buttons, SIGNAL(play()), this, SLOT(play()));
+    connect(buttons, SIGNAL(pause()), this, SLOT(pause()));
+    connect(player, SIGNAL(stateChanged(QMediaPlayer::State)), buttons, SLOT(setMediaPlayerState(QMediaPlayer::State)));
+
+    connect(buttons, SIGNAL(changeVolume(int)), player, SLOT(setVolume(int)));
+    connect(player, SIGNAL(volumeChanged(int)), buttons, SLOT(setVolume(int)));
+
+    connect(buttons, SIGNAL(changeMuting(bool)), player, SLOT(setMuted(bool)));
+    connect(player, SIGNAL(mutedChanged(bool)), buttons, SLOT(setMuted(bool)));
+}
+
 void MyPlayer::loadSettings()
 {
     QSettings settings(QSettings::IniFormat, QSettings::UserScope,
@@ -278,12 +344,14 @@ void MyPlayer::updateRecent(const QString &file)
 
 void MyPlayer::pause()
 {
-    player->pause();
+    if (player->state() != QMediaPlayer::PausedState)
+        player->pause();
 }
 
 void MyPlayer::play()
 {
-    player->play();
+    if (player->state() != QMediaPlayer::PlayingState)
+        player->play();
 }
 
 void MyPlayer::setFile(const QString &file)
@@ -382,7 +450,7 @@ void MyPlayer::updateDurationInfo(qint64 current_pos)
     format = total.hour() > 0 ? "HH:mm:ss.zzz" : "mm:ss.zzz";
     info = current.toString(format) + " / " + total.toString(format);
 
-    label_duration->setText(info);
+    emit durationInfoChanged(info);
 }
 
 void MyPlayer::createMovie()

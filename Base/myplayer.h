@@ -19,6 +19,9 @@ public:
     explicit MyPlayer(QWidget *parent = 0);
     ~MyPlayer() = default;
 
+signals:
+    void durationInfoChanged(const QString &info);
+
 public slots:
     void pause();
     void play();
@@ -56,12 +59,14 @@ protected:
     void createActions();
     void createMenus();
     void createMenuRecent();
+    void createFullscreenWidget();
 
 protected:
     MyVideoWidget *video_widget;
     DurationSlider *slider_duration;
     QLabel *label_duration;
     QPushButton *button_create;
+    QWidget *fullScreen_widget;
 
     QMediaPlayer *player;
 
