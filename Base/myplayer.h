@@ -21,11 +21,13 @@ public:
 
 signals:
     void durationInfoChanged(const QString &info);
+    void allowRepeatChanged(bool allowed);
 
 public slots:
     void pause();
     void play();
     void setFile(const QString &file);
+    void allowRepeat(bool allowed);
 
 protected slots:
     void setPosition(qint64 msecs);
@@ -85,6 +87,8 @@ protected:
 
     QAction *action_open_file;
     QAction *action_recent_clear;
+
+    bool repeat_allowed;
 };
 
 #endif // MYPLAYER_H

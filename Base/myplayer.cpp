@@ -5,7 +5,8 @@
 
 MyPlayer::MyPlayer(QWidget *parent):
     QMainWindow(parent),
-    player(new QMediaPlayer(this))
+    player(new QMediaPlayer(this)),
+    repeat_allowed(true)
 {  
     createWidgets();
     createLayouts();
@@ -158,14 +159,25 @@ void MyPlayer::createConnections()
     connect(this, SIGNAL(durationInfoChanged(QString)), label_duration, SLOT(setText(QString)));
 
 
-    // Auto-repeat
+    // Auto-repeat   
     connect(player, &QMediaPlayer::stateChanged, [&, this](QMediaPlayer::State state){
-        if (state == QMediaPlayer::StoppedState && player->position() > player->duration()
-            && player->error() == QMediaPlayer::NoError)
-        {
-            qDebug() << "Repeat";
-            setPosition(0);
-            play();
+        switch(state) {
+        case QMediaPlayer::PausedState:
+            repeat_allowed = false;
+            break;
+        case QMediaPlayer::PlayingState:
+            repeat_allowed = true;
+            break;
+        case QMediaPlayer::StoppedState:
+            if (player->position() >= player->duration()
+                && player->error() == QMediaPlayer::NoError
+                && repeat_allowed == true)
+            {
+                qDebug() << "Repeat";
+                setPosition(0);
+                play();
+            }
+            break;
         }
     });
 
@@ -250,7 +262,7 @@ void MyPlayer::createFullscreenWidget()
     vLayout1->addLayout(hLayout1);
 
     widget->setLayout(vLayout1);
-    widget->setMaximumHeight(70);
+    widget->setMaximumHeight(60);
     widget->setStyleSheet("background-color: #DDDDDD");
 
     video_widget->setFullScreenWidget(widget);
@@ -364,9 +376,19 @@ void MyPlayer::setFile(const QString &file)
     setWindowTitle(QCoreApplication::applicationName() + " - " + filename);
     current_file = file;
 
-    updateRecent(file);
+    QString file_native = QDir::toNativeSeparators(file);
+    updateRecent(file_native);
 
     play();
+}
+
+void MyPlayer::allowRepeat(bool allowed)
+{
+    if (repeat_allowed != allowed)
+    {
+        repeat_allowed = allowed;
+        emit allowRepeatChanged(allowed);
+    }
 }
 
 void MyPlayer::setPosition(qint64 msecs)
@@ -484,7 +506,7 @@ void MyPlayer::actionOpenRecent()
     QAction *action = static_cast<QAction*>(sender());
     QString filename = action->text();
 
-    setFile(filename);
+    setFile(QFile(filename).fileName());
 }
 
 void MyPlayer::handlePlayerError(QMediaPlayer::Error error)
