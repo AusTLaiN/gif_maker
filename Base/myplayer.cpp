@@ -124,7 +124,7 @@ void MyPlayer::createLayouts()
     central_widget->setLayout(main_layout);
     this->setCentralWidget(central_widget);
 
-    connect(video_widget, &MyVideoWidget::fullScreenChanged, [this, layout_bottom, main_layout](bool fullscreen) {
+    connect(video_widget, &MyVideoWidget::fullScreenChanged, [this, layout_bottom](bool fullscreen) {
         if (fullscreen)
         {
             controlPanel->layout()->setMargin(5);
