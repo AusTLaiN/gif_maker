@@ -61,7 +61,6 @@ protected:
     void createActions();
     void createMenus();
     void createMenuRecent();
-    void createFullscreenWidget();
 
 protected:
     MyVideoWidget *video_widget;
@@ -76,6 +75,8 @@ protected:
     Marker *marker1;
     Marker *marker2;
     SeekButtons *seek_buttons;
+
+    QWidget *controlPanel;
 
     QString movies_directory;
     QString current_file;

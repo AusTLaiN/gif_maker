@@ -13,7 +13,6 @@ MyPlayer::MyPlayer(QWidget *parent):
     createConnections();
     createActions();
     createMenus();
-    createFullscreenWidget();
 
     player->setVideoOutput(video_widget);
     player->setNotifyInterval(50);
@@ -58,23 +57,18 @@ void MyPlayer::createWidgets()
     controls = new PlayerControls;
     marker1 = new Marker("Start position :");
     marker2 = new Marker("End position :");
+
+    controlPanel = new QWidget(nullptr, Qt::FramelessWindowHint);
 }
 
 void MyPlayer::createLayouts()
 {
     QVBoxLayout *main_layout = new QVBoxLayout();
 
-    label_duration->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-
     QHBoxLayout *layout_seek = new QHBoxLayout;
-    layout_seek->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
+    layout_seek->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
     layout_seek->addWidget(seek_buttons);
-    layout_seek->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
-
-    QHBoxLayout *layout_duration = new QHBoxLayout;
-    layout_duration->addSpacerItem(new QSpacerItem(5, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
-    layout_duration->addWidget(slider_duration);
-    layout_duration->addSpacerItem(new QSpacerItem(5, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
+    layout_seek->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
 
     QVBoxLayout *layout_markers = new QVBoxLayout();
     layout_markers->setMargin(0);
@@ -82,39 +76,67 @@ void MyPlayer::createLayouts()
     layout_markers->addWidget(marker1);
     layout_markers->addWidget(marker2);
 
+    QWidget *widget_markers = new QWidget;
+    widget_markers->setMaximumWidth(400);
+    widget_markers->setLayout(layout_markers);
+
     QHBoxLayout *layout_markers2 = new QHBoxLayout;
-    layout_markers2->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
-    layout_markers2->addLayout(layout_markers);
-    layout_markers2->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
+    layout_markers2->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+    layout_markers2->addWidget(widget_markers);
+    layout_markers2->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
 
-    QGridLayout *grid_layout = new QGridLayout;
-    grid_layout->setMargin(5);
-    grid_layout->setSpacing(2);
+    auto *layout_grid2 = new QGridLayout;
+    layout_grid2->addWidget(controls, 0, 0);
+    layout_grid2->addLayout(layout_seek, 0, 1, Qt::AlignHCenter);
+    layout_grid2->addWidget(label_duration, 0, 2, Qt::AlignRight | Qt::AlignBottom);
+    layout_grid2->setColumnMinimumWidth(0, 150);
+    layout_grid2->setColumnMinimumWidth(2, 150);
 
-    grid_layout->addWidget(controls, 0, 0);
-    grid_layout->addLayout(layout_seek, 0, 1);
-    grid_layout->addWidget(label_duration, 0, 2);
+    QVBoxLayout *layout_controlPanel = new QVBoxLayout;
+    layout_controlPanel->setMargin(0);
+    layout_controlPanel->setSpacing(2);
+    layout_controlPanel->addWidget(slider_duration);
+    layout_controlPanel->addLayout(layout_grid2);
 
-    grid_layout->addLayout(layout_markers2, 1, 1);
-    grid_layout->addWidget(button_create, 1, 2, Qt::AlignBottom | Qt::AlignRight);
+    controlPanel->setLayout(layout_controlPanel);
+    controlPanel->setMaximumHeight(70);
 
-    grid_layout->setColumnMinimumWidth(0, 160);
-    grid_layout->setColumnMinimumWidth(2, 160);
+    auto *layout_grid1 = new QGridLayout;
+    layout_grid1->setMargin(0);
+    layout_grid1->setSpacing(2);
+    layout_grid1->addLayout(layout_markers2, 0, 1);
+    layout_grid1->addWidget(button_create, 0, 2, Qt::AlignRight | Qt::AlignBottom);
+    layout_grid1->setColumnMinimumWidth(0, 160);
+    layout_grid1->setColumnMinimumWidth(2, 160);
 
-    QWidget *grid_widget = new QWidget;
-    grid_widget->setLayout(grid_layout);
-    grid_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    auto *layout_bottom = new QVBoxLayout;
+    layout_bottom->setMargin(3);
+    layout_bottom->setSpacing(3);
+    layout_bottom->addWidget(controlPanel);
+    layout_bottom->addLayout(layout_grid1);
 
     main_layout->setMargin(0);
     main_layout->setSpacing(3);
     main_layout->addWidget(video_widget);
-    main_layout->addLayout(layout_duration);
-    main_layout->addWidget(grid_widget);
+    main_layout->addLayout(layout_bottom);
 
     QWidget *central_widget = new QWidget();
     central_widget->setLayout(main_layout);
+    this->setCentralWidget(central_widget);
 
-    setCentralWidget(central_widget);
+    connect(video_widget, &MyVideoWidget::fullScreenChanged, [this, layout_bottom, main_layout](bool fullscreen) {
+        if (fullscreen)
+        {
+            controlPanel->layout()->setMargin(5);
+            video_widget->setFullScreenWidget(controlPanel);
+        }
+        else
+        {
+            controlPanel->layout()->setMargin(0);
+            layout_bottom->insertWidget(0, controlPanel);
+            controlPanel->show();
+        }
+    });
 }
 
 void MyPlayer::createConnections()
@@ -231,70 +253,6 @@ void MyPlayer::createMenuRecent()
 
         connect(action, SIGNAL(triggered(bool)), SLOT(actionOpenRecent()));
     }
-}
-
-void MyPlayer::createFullscreenWidget()
-{
-    auto widget = new QWidget;
-    auto hLayout1 = new QHBoxLayout;
-    auto vLayout1 = new QVBoxLayout;
-
-    //widget->setWindowFlags(Qt::CustomizeWindowHint);
-    widget->setWindowFlags(Qt::FramelessWindowHint);
-
-    hLayout1->setMargin(0);
-    hLayout1->setSpacing(0);
-    vLayout1->setMargin(5);
-    vLayout1->setSpacing(0);
-
-    auto slider_dur = new DurationSlider;
-    auto buttons = new PlayerControls;
-    auto label = new QLabel;
-
-    label->setText("Current time/Duration");
-    label->setMinimumWidth(110);
-
-    hLayout1->addWidget(buttons);
-    hLayout1->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
-    hLayout1->addWidget(label);
-
-    vLayout1->addWidget(slider_dur);
-    vLayout1->addLayout(hLayout1);
-
-    widget->setLayout(vLayout1);
-    widget->setMaximumHeight(60);
-    widget->setStyleSheet("background-color: #DDDDDD");
-
-    video_widget->setFullScreenWidget(widget);
-    fullScreen_widget = widget;
-
-    // Connections
-
-    connect(slider_dur, &DurationSlider::sliderPressed, [this, slider_dur](){
-        disconnect(player, SIGNAL(positionChanged(qint64)), slider_dur, SLOT(setPosition(qint64)));
-    });
-    connect(slider_dur, &DurationSlider::sliderReleased, [this, slider_dur](){
-        connect(player, SIGNAL(positionChanged(qint64)), slider_dur, SLOT(setPosition(qint64)));
-    });
-    connect(player, SIGNAL(positionChanged(qint64)), slider_dur, SLOT(setPosition(qint64)));
-    connect(slider_dur, SIGNAL(positionChanged(qint64)), this, SLOT(setPosition(qint64)));
-
-    // Connections with controls
-
-    connect(player, &QMediaPlayer::durationChanged, [slider_dur](qint64 duration) {
-        slider_dur->setRange(0, duration / 100);
-    });
-    connect(this, SIGNAL(durationInfoChanged(QString)), label, SLOT(setText(QString)));
-
-    connect(buttons, SIGNAL(play()), this, SLOT(play()));
-    connect(buttons, SIGNAL(pause()), this, SLOT(pause()));
-    connect(player, SIGNAL(stateChanged(QMediaPlayer::State)), buttons, SLOT(setMediaPlayerState(QMediaPlayer::State)));
-
-    connect(buttons, SIGNAL(changeVolume(int)), player, SLOT(setVolume(int)));
-    connect(player, SIGNAL(volumeChanged(int)), buttons, SLOT(setVolume(int)));
-
-    connect(buttons, SIGNAL(changeMuting(bool)), player, SLOT(setMuted(bool)));
-    connect(player, SIGNAL(mutedChanged(bool)), buttons, SLOT(setMuted(bool)));
 }
 
 void MyPlayer::loadSettings()
@@ -512,9 +470,13 @@ void MyPlayer::actionOpenRecent()
 void MyPlayer::handlePlayerError(QMediaPlayer::Error error)
 {
     player->stop();
+
     QStringList err_msg;
     err_msg << "MediaPlayer error"
             << "Error code : " + QString::number(error)
             << "Error msg  : " + player->errorString();
     QMessageBox(QMessageBox::Critical, "Error", err_msg.join("\n")).exec();
+
+    recent_files.removeFirst();
+    createMenuRecent();
 }

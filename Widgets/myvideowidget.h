@@ -24,6 +24,7 @@ protected slots:
     void stopHiding();
 
     void onFullScreenChanged(bool fullscreen);
+    void showMenuWidget();
 
 protected:
     virtual void keyPressEvent(QKeyEvent *event) override;

@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QSlider>
 #include <QPushButton>
+#include <QLayout>
 
 MyVideoWidget::MyVideoWidget(QWidget *parent) :
     QVideoWidget(parent),
@@ -29,10 +30,15 @@ void MyVideoWidget::setFullScreenWidget(QWidget *widget)
     fullscreen_widget = widget;
     if (fullscreen_widget)
     {
-        //fullscreen_widget->setParent(this);
+        //
+        //fullscreen_widget->layout()->setMargin(5);
+        fullscreen_widget->setParent(nullptr);
         fullscreen_widget->setMouseTracking(true);
         fullscreen_widget->hide();
         fullscreen_widget->raise();
+
+        if (isFullScreen())
+            showMenuWidget();
     }
 }
 
@@ -63,29 +69,32 @@ void MyVideoWidget::onFullScreenChanged(bool fullscreen)
         beginHiding();
 
         if (fullscreen_widget)
-        {
-            fullscreen_widget->setGeometry(0, 0, this->width(), fullscreen_widget->height());
-
-            QPoint pos = this->pos();
-            pos += QPoint(0, this->height());
-            pos -= QPoint(0, fullscreen_widget->height());
-
-            /*qDebug() << "VideoWidget height = " << this->height();
-            qDebug() << "FullScreenWidget height = " << fullscreen_widget->height();
-            qDebug() << "Pos = " << pos;*/
-
-            fullscreen_widget->move(pos);
-        }
+            showMenuWidget();
     }
     else
     {
-        setCursor(Qt::ArrowCursor);
+        stopHiding();
 
         if (fullscreen_widget)
         {
             fullscreen_widget->hide();
         }
     }
+}
+
+void MyVideoWidget::showMenuWidget()
+{
+    fullscreen_widget->setGeometry(this->width(), this->height(), this->width(), fullscreen_widget->height());
+    fullscreen_widget->show();
+
+    QPoint pos = this->pos();
+    pos += QPoint(0, this->height());
+    pos -= QPoint(0, fullscreen_widget->height());
+
+    qDebug() << "FS widget = " << fullscreen_widget->geometry();
+    qDebug() << "Pos = " << pos;
+
+    fullscreen_widget->move(pos);
 }
 
 void MyVideoWidget::keyPressEvent(QKeyEvent *event)
