@@ -42,11 +42,19 @@ SeekButtons::SeekButtons(QWidget *parent)
         for (int j = 0; j < 2; j++)
         {
             buttons[i][j] = new QPushButton;
-            buttons[i][j]->setFixedWidth(50);
+            buttons[i][j]->setFixedWidth(48);
             buttons[i][j]->setCursor(Qt::PointingHandCursor);
 
             buttons[i][j]->setIcon(style()->standardIcon(j ? QStyle::SP_MediaSeekForward
                                                            : QStyle::SP_MediaSeekBackward));
+
+            buttons[i][j]->setStyleSheet("QPushButton {"
+                                         "height: 20px;"
+                                         "border-width: 1px;"
+                                         "border-style: solid;"
+                                         "border-color: grey;"
+                                         "border-radius: 0px;"
+                                         "}");
 
             int index = j ? (count - i - 1) : i;
             double value = values[index] * 1000;
