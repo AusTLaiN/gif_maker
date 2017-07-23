@@ -63,7 +63,7 @@
       <item>
        <widget class="QLabel" name="label_filename">
         <property name="text">
-         <string>Movie name:</string>
+         <string>Name:</string>
         </property>
        </widget>
       </item>

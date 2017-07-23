@@ -16,10 +16,10 @@ static void setText(QPushButton *button, int msecs, const QString &direction)
     }
     else
     {
-        hint += QString::number(msecs / 1000);
+        hint += QString::number(msecs / 1000) + " second";
         text = QString::number(msecs / 1000) + "s";
 
-        if (msecs == 1000)
+        if (msecs / 1000 > 1)
             hint += 's';
     }
 

@@ -17,18 +17,18 @@ MakeMovieDialog::MakeMovieDialog(QWidget *parent) :
     ui->setupUi(this);
     // Hide "?" button
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    setWindowTitle("Movie options");
+    setWindowTitle("Options");
 
 
     ui->verticalLayout_1->addWidget(file_options);
 
-    ui->comboBox_height->setToolTip("Output movie height.\n"
+    ui->comboBox_height->setToolTip("Output height.\n"
                                     "Scale works only if another dimension set.\n"
                                     "Scaling both dimensions will give the original size");
-    ui->comboBox_width->setToolTip("Output movie width.\n"
+    ui->comboBox_width->setToolTip("Output width.\n"
                                     "Scale works only if another dimension set.\n"
                                     "Scaling both dimensions will give the original size");
-    ui->comboBox_fps->setToolTip("Output movie fps.\n"
+    ui->comboBox_fps->setToolTip("Output fps.\n"
                                  "Fps cannot exceed original value");
 
 
@@ -275,7 +275,7 @@ void MakeMovieDialog::comboBoxTransform_updateTooltip()
         cbox->setToolTip("Reverse the movie");
         break;
     case FFmpeg::Mirror:
-        cbox->setToolTip("Rotate the movie by 180 degrees");
+        cbox->setToolTip("Rotate by 180 degrees");
         break;
     case FFmpeg::Loop:
         cbox->setToolTip("Make it cycled (concatenate with it's reversed copy)");

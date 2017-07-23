@@ -8,6 +8,7 @@ WaitDialog::WaitDialog(QDialog *parent) :
     ui->setupUi(this);
     // hide close and "?" buttons
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
+    //setWindowTitle("In process");
 
     connect(ui->button_cancel, SIGNAL(clicked(bool)), this, SIGNAL(buttonCancel_clicked()));  
     connect(ui->button_ok, &QPushButton::clicked, [this](){
